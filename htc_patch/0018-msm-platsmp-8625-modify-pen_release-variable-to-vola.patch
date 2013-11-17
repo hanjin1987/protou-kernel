@@ -1,0 +1,34 @@
+From f5b9179f220757488dbe6b3670d5f3135e76e111 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Mon, 10 Sep 2012 19:11:49 +0530
+Subject: [PATCH 18/75] msm: platsmp-8625: modify pen_release variable to volatile
+
+Since pen_release is a shared variable between cpus. By marking it
+as volatile, compiler won't cache that variable into registers and
+won't optimize the code which access pen_release variable.
+
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+(cherry picked from commit 23f9d1cba9136ad89dc6a26d0d88a4c28bd66153)
+
+Change-Id: Ic816ea0c1767c0373df34cf0934ae415e2e1b29b
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/platsmp-8625.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 700f966..a32f5c4 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -35,7 +35,7 @@
+  * control for which core is the next to come out of the secondary
+  * boot "holding pen"
+  */
+-int pen_release = -1;
++volatile int pen_release = -1;
+ 
+ static bool cold_boot_done;
+ 
+-- 
+1.7.0.4
+

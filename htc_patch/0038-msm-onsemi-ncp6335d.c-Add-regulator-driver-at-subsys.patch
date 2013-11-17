@@ -1,0 +1,41 @@
+From 02b6822a2998b43a2c4cbffd505e5e27237578d3 Mon Sep 17 00:00:00 2001
+From: Utsab Bose <ubose@codeaurora.org>
+Date: Tue, 6 Nov 2012 11:39:45 +0530
+Subject: [PATCH 38/75] msm: onsemi-ncp6335d.c: Add regulator driver at subsys initcall
+
+Add the onsemi-ncp6335d regulator driver at subsys initcall
+as the regulator_get() is used by acpuclock driver at device initcall.
+This resolves the dependency chain.
+
+Signed-off-by: Utsab Bose <ubose@codeaurora.org>
+Change-Id: Ia7a18218066486c40080b25d57e979372467d8bd
+---
+ drivers/regulator/onsemi-ncp6335d.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/regulator/onsemi-ncp6335d.c b/drivers/regulator/onsemi-ncp6335d.c
+index a0c90f0..f5fd460 100644
+--- a/drivers/regulator/onsemi-ncp6335d.c
++++ b/drivers/regulator/onsemi-ncp6335d.c
+@@ -369,8 +369,15 @@ static struct i2c_driver ncp6335d_regulator_driver = {
+ 	.remove = __devexit_p(ncp6335d_regulator_remove),
+ 	.id_table = ncp6335d_id,
+ };
++static int __init ncp6335d_regulator_init(void)
++{
++	return i2c_add_driver(&ncp6335d_regulator_driver);
++}
++subsys_initcall(ncp6335d_regulator_init);
+ 
+-module_i2c_driver(ncp6335d_regulator_driver);
++static void __exit ncp6335d_regulator_exit(void)
++{
++	i2c_del_driver(&ncp6335d_regulator_driver);
++}
++module_exit(ncp6335d_regulator_exit);
+ 
+-MODULE_DESCRIPTION("OnSemi-NCP6335D regulator driver");
+-MODULE_LICENSE("GPL v2");
+-- 
+1.7.0.4
+

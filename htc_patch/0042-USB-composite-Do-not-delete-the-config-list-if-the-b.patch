@@ -1,0 +1,41 @@
+From ed340cc631650b79b63a9c5ecd49453d04bc1c51 Mon Sep 17 00:00:00 2001
+From: Rajkumar Raghupathy <raghup@codeaurora.org>
+Date: Tue, 6 Nov 2012 16:39:24 +0530
+Subject: [PATCH 42/75] USB: composite: Do not delete the config->list if the bind_config fails
+
+If the bind_config of any function driver fails during usb_add_config(),
+the config->list is deleted. In such case, when a composition switch is
+done, the config->list is deleted again when usb_remove_config() is called
+which leads to crash.
+
+Hence, don't delete the config->list if bind_config fails, in
+usb_add_config() function as it is done in usb_remove_config().
+
+CRs-Fixed: 418180
+Signed-off-by: Rajkumar Raghupathy <raghup@codeaurora.org>
+(cherry picked from commit ced78ab70f4531e2df5e926913c10af11d215abf)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+(cherry picked from commit 7480ec643a2f28f118843f6cd29bed4358c465b9)
+
+Change-Id: I85a0f1dd69fd19fe2163984f51bc67b9a5f67b95
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/usb/gadget/composite.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/gadget/composite.c b/drivers/usb/gadget/composite.c
+index d35d861..83639c0 100644
+--- a/drivers/usb/gadget/composite.c
++++ b/drivers/usb/gadget/composite.c
+@@ -740,7 +740,6 @@ int usb_add_config(struct usb_composite_dev *cdev,
+ 
+ 	status = bind(config);
+ 	if (status < 0) {
+-		list_del(&config->list);
+ 		config->cdev = NULL;
+ 	} else {
+ 		unsigned	i;
+-- 
+1.7.0.4
+

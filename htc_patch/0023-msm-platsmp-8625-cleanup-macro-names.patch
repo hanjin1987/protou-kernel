@@ -1,0 +1,109 @@
+From 45bb5fbdc6b1fb16141d8e35c18274eb02803623 Mon Sep 17 00:00:00 2001
+From: Taniya Das <tdas@codeaurora.org>
+Date: Mon, 24 Sep 2012 17:59:14 +0530
+Subject: [PATCH 23/75] msm: platsmp-8625: cleanup macro names
+
+All the macros defined for 8625 secondary core indicates dual
+core. Cleanup macros to be more generic to fit for multi core.
+
+Change-Id: Ia21b2fe6e4a980ae1d60729ceb4085d1a72a16d3
+Signed-off-by: Taniya Das <tdas@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7x27a.c         |    2 +-
+ arch/arm/mach-msm/board-qrd7627a.c         |    2 +-
+ arch/arm/mach-msm/include/mach/msm_iomap.h |    2 +-
+ arch/arm/mach-msm/platsmp-8625.c           |   14 +++++++-------
+ 4 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7x27a.c b/arch/arm/mach-msm/board-msm7x27a.c
+index 7b5c05d..1093488 100644
+--- a/arch/arm/mach-msm/board-msm7x27a.c
++++ b/arch/arm/mach-msm/board-msm7x27a.c
+@@ -925,7 +925,7 @@ static void __init msm7x27a_reserve(void)
+ static void __init msm8625_reserve(void)
+ {
+ 	msm7x27a_reserve();
+-	memblock_remove(MSM8625_SECONDARY_PHYS, SZ_8);
++	memblock_remove(MSM8625_CPU_PHYS, SZ_8);
+ 	memblock_remove(MSM8625_WARM_BOOT_PHYS, SZ_32);
+ 	memblock_remove(MSM8625_NON_CACHE_MEM, SZ_2K);
+ }
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index 2e6fe01..126cf07 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -825,8 +825,8 @@ static void __init msm7627a_reserve(void)
+ 
+ static void __init msm8625_reserve(void)
+ {
+-	memblock_remove(MSM8625_SECONDARY_PHYS, SZ_8);
+ 	memblock_remove(MSM8625_NON_CACHE_MEM, SZ_2K);
++	memblock_remove(MSM8625_CPU_PHYS, SZ_8);
+ 	msm7627a_reserve();
+ }
+ 
+diff --git a/arch/arm/mach-msm/include/mach/msm_iomap.h b/arch/arm/mach-msm/include/mach/msm_iomap.h
+index d9978b5..3c5d841 100644
+--- a/arch/arm/mach-msm/include/mach/msm_iomap.h
++++ b/arch/arm/mach-msm/include/mach/msm_iomap.h
+@@ -98,8 +98,8 @@
+ 							  0xFB600000 */
+ 
+ #define MSM_STRONGLY_ORDERED_PAGE	0xFA0F0000
+-#define MSM8625_SECONDARY_PHYS		0x0FE00000
+ #define MSM8625_NON_CACHE_MEM		0x0FC00000
++#define MSM8625_CPU_PHYS		0x0FE00000
+ 
+ #if defined(CONFIG_ARCH_MSM9615) || defined(CONFIG_ARCH_MSM7X27) \
+ 	|| defined(CONFIG_ARCH_MSM7X30)
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 4981946..1a22e1e 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -28,8 +28,8 @@
+ #include <mach/msm_iomap.h>
+ #include "pm.h"
+ 
+-#define MSM_CORE1_RESET		0xA8600590
+-#define MSM_CORE1_STATUS_MSK	0x02800000
++#define CORE_RESET_BASE		0xA8600590
++#define MSM_CORE_STATUS_MSK	0x02800000
+ 
+ /*
+  * control for which core is the next to come out of the secondary
+@@ -139,8 +139,8 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
+ 	timeout = jiffies + usecs_to_jiffies(20);
+ 	while (time_before(jiffies, timeout)) {
+ 		value = __raw_readl(MSM_CFG_CTL_BASE + 0x3c);
+-		if ((value & MSM_CORE1_STATUS_MSK) ==
+-				MSM_CORE1_STATUS_MSK)
++		if ((value & MSM_CORE_STATUS_MSK) ==
++				MSM_CORE_STATUS_MSK)
+ 			break;
+ 			udelay(1);
+ 	}
+@@ -150,7 +150,7 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
+ 		return -ENODEV;
+ 	}
+ 
+-	base_ptr = ioremap_nocache(MSM_CORE1_RESET, SZ_4);
++	base_ptr = ioremap_nocache(CORE_RESET_BASE, SZ_4);
+ 	if (!base_ptr)
+ 		return -ENODEV;
+ 	/* Reset core 1 out of reset */
+@@ -277,10 +277,10 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+ 	 * Write the address of secondary startup into the
+ 	 * boot remapper register. The secondary CPU branches to this address.
+ 	 */
+-	__raw_writel(MSM8625_SECONDARY_PHYS, (MSM_CFG_CTL_BASE + 0x34));
++	__raw_writel(MSM8625_CPU_PHYS, (MSM_CFG_CTL_BASE + 0x34));
+ 	mb();
+ 
+-	second_ptr = ioremap_nocache(MSM8625_SECONDARY_PHYS, SZ_8);
++	second_ptr = ioremap_nocache(MSM8625_CPU_PHYS, SZ_8);
+ 	if (!second_ptr) {
+ 		pr_err("failed to ioremap for secondary core\n");
+ 		return;
+-- 
+1.7.0.4
+

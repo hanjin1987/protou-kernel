@@ -1,0 +1,42 @@
+From f08908f417e464c4fb29a9ce279039cede4d9c3a Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Fri, 23 Nov 2012 15:36:07 +0530
+Subject: [PATCH 56/75] diag: Add support for MSM8625Q TOOLS ID
+
+MSM8625Q requires new TOOLS ID for the MSM8625Q based targets.
+
+Change-Id: I507f1dca60519ee7f06bd1d75581c4896926c33d
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ drivers/char/diag/diagfwd.c |    2 ++
+ include/linux/diagchar.h    |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/char/diag/diagfwd.c b/drivers/char/diag/diagfwd.c
+index 99568f6..6ae3e60 100644
+--- a/drivers/char/diag/diagfwd.c
++++ b/drivers/char/diag/diagfwd.c
+@@ -139,6 +139,8 @@ int chk_config_get_id(void)
+ 			return MSM8974_TOOLS_ID;
+ 		case MSM_CPU_8625:
+ 			return MSM8625_TOOLS_ID;
++		case MSM_CPU_8625Q:
++			return MSM8625Q_TOOLS_ID;
+ 		default:
+ 			return 0;
+ 		}
+diff --git a/include/linux/diagchar.h b/include/linux/diagchar.h
+index fbffdd2..029f6c7 100644
+--- a/include/linux/diagchar.h
++++ b/include/linux/diagchar.h
+@@ -53,6 +53,7 @@
+ #define MSM8627_TOOLS_ID	4080
+ #define MSM8227_TOOLS_ID	4081
+ #define MSM8974_TOOLS_ID	4083
++#define MSM8625Q_TOOLS_ID	4086
+ 
+ #define MSG_MASK_0			(0x00000001)
+ #define MSG_MASK_1			(0x00000002)
+-- 
+1.7.0.4
+

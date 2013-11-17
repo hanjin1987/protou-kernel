@@ -1,0 +1,142 @@
+From 397574e2f59f068cbc9c237977b2cae086e80a83 Mon Sep 17 00:00:00 2001
+From: Utsab Bose <ubose@codeaurora.org>
+Date: Fri, 30 Nov 2012 13:32:50 +0530
+Subject: [PATCH 66/75] msm: acpuclock-8625q: Select the PVS equation dynamically.
+
+msm8625q (Quad core chip)and 8625.v2.0 uses different
+PVS equation. This patch has the required changes which
+will allow acpuclock driver to use the right PVS equation.
+
+Change-Id: I195e7105ff2073463e20dfcdbb3d654719657b94
+Signed-off-by: Utsab Bose <ubose@codeaurora.org>
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/acpuclock-8625q.c  |   18 +++++++++++++-----
+ arch/arm/mach-msm/acpuclock-8625q.h  |    2 ++
+ arch/arm/mach-msm/devices-msm7x27a.c |   16 +++++++++++-----
+ 3 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-msm/acpuclock-8625q.c b/arch/arm/mach-msm/acpuclock-8625q.c
+index 46b3525..24ba9b7 100644
+--- a/arch/arm/mach-msm/acpuclock-8625q.c
++++ b/arch/arm/mach-msm/acpuclock-8625q.c
+@@ -137,7 +137,7 @@ static struct clkctl_acpu_speed acpu_freq_tbl_cmn[] = {
+ 	{ 0, 600000, ACPU_PLL_2, 2, 1, 75000, 3, 0, 160000 },
+ 	{ 1, 700800, ACPU_PLL_4, 6, 0, 87500, 3, MAX_NOMINAL_VOLTAGE, 160000,
+ 						&pll4_cfg_tbl[0]},
+-	{ 1, 1008000, ACPU_PLL_4, 6, 0, 126000, 3, 1175000, 200000,
++	{ 1, 1008000, ACPU_PLL_4, 6, 0, 126000, 3, MAX_1GHZ_VOLTAGE, 200000,
+ 						&pll4_cfg_tbl[1]},
+ };
+ 
+@@ -556,7 +556,9 @@ static unsigned long acpuclk_8625q_get_rate(int cpu)
+ 
+ #define MHZ 1000000
+ 
+-static void __devinit select_freq_plan(unsigned int pvs_voltage)
++static void __devinit select_freq_plan(unsigned int pvs_voltage,
++					unsigned int nominal_vol_uv,
++					unsigned int default_vol_uv)
+ {
+ 	unsigned long pll_mhz[ACPU_PLL_END];
+ 	int i;
+@@ -630,6 +632,8 @@ static void __devinit select_freq_plan(unsigned int pvs_voltage)
+ 	*/
+ 	for (tbl = acpu_freq_tbl; tbl->a11clk_khz; tbl++) {
+ 		if (tbl->a11clk_khz >= 1008000) {
++			if (tbl->a11clk_khz == 1209600)
++				tbl->vdd = default_vol_uv;
+ 			/*
+ 			 * Change voltage as per PVS formula,
+ 			 * i is initialized above with 2 or 1
+@@ -641,11 +645,13 @@ static void __devinit select_freq_plan(unsigned int pvs_voltage)
+ 
+ 			tbl->vdd = max((int)(pvs_voltage - delta[i]), tbl->vdd);
+ 			i--;
+-		}
++		} else if (tbl->a11clk_khz != 600000
++					&& tbl->a11clk_khz != 19200)
++			tbl->vdd = nominal_vol_uv;
+ 	}
+ 
+ 
+-	/* find the backup PLL entry from the table */
++	/* find the backup PLL entry from the table  */
+ 	for (tbl = acpu_freq_tbl; tbl->a11clk_khz; tbl++) {
+ 		if (tbl->pll == ACPU_PLL_2 &&
+ 				tbl->a11clk_src_div == 1) {
+@@ -751,6 +757,8 @@ static int __devinit acpuclk_8625q_probe(struct platform_device *pdev)
+ {
+ 	const struct acpuclk_pdata_8625q *pdata = pdev->dev.platform_data;
+ 	unsigned int pvs_voltage = pdata->pvs_voltage_uv;
++	unsigned int nom_vol_uv = pdata->nominal_voltage;
++	unsigned int default_vol_uv = pdata->default_turbo_voltage;
+ 
+ 	drv_state.max_speed_delta_khz = pdata->acpu_clk_data->
+ 						max_speed_delta_khz;
+@@ -759,7 +767,7 @@ static int __devinit acpuclk_8625q_probe(struct platform_device *pdev)
+ 	BUG_ON(IS_ERR(drv_state.ebi1_clk));
+ 
+ 	mutex_init(&drv_state.lock);
+-	select_freq_plan(pvs_voltage);
++	select_freq_plan(pvs_voltage, nom_vol_uv, default_vol_uv);
+ 	acpuclk_8625q_data.wait_for_irq_khz = find_wait_for_irq_khz();
+ 
+ 	if (acpuclk_hw_init() < 0)
+diff --git a/arch/arm/mach-msm/acpuclock-8625q.h b/arch/arm/mach-msm/acpuclock-8625q.h
+index ca2058f..c91e3bd 100644
+--- a/arch/arm/mach-msm/acpuclock-8625q.h
++++ b/arch/arm/mach-msm/acpuclock-8625q.h
+@@ -23,6 +23,8 @@
+ struct acpuclk_pdata_8625q {
+ 	struct acpuclk_pdata *acpu_clk_data;
+ 	unsigned int pvs_voltage_uv;
++	unsigned int nominal_voltage;
++	unsigned int default_turbo_voltage;
+ };
+ 
+ #endif /* __ARCH_ARM_MACH_MSM_ACPUCLOCK_8625Q_H */
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 2bf925d..8742676 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -2050,7 +2050,8 @@ static int __init msm_gpio_config_gps(void)
+ 	return ret;
+ }
+ 
+-static int __init msm_acpuclock_init(void)
++static int __init msm_acpuclock_init(int nominal_voltage,
++					int default_turbo_voltage)
+ {
+ 	struct cpr_info_type *acpu_info = NULL;
+ 	acpu_info = kzalloc(sizeof(struct cpr_info_type), GFP_KERNEL);
+@@ -2062,6 +2063,8 @@ static int __init msm_acpuclock_init(void)
+ 	msm8625q_acpuclk_pdata.pvs_voltage_uv =
+ 			msm_c2_pmic_mv[acpu_info->pvs_fuse & 0x1F];
+ 	kfree(acpu_info);
++	msm8625q_acpuclk_pdata.nominal_voltage = nominal_voltage;
++	msm8625q_acpuclk_pdata.default_turbo_voltage = default_turbo_voltage;
+ 	return 0;
+ }
+ 
+@@ -2077,10 +2080,13 @@ int __init msm7x2x_misc_init(void)
+ 	msm_clock_init(&msm7x27a_clock_init_data);
+ 	if (cpu_is_msm7x27aa() || cpu_is_msm7x25ab())
+ 		platform_device_register(&msm7x27aa_device_acpuclk);
+-	else if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+-		if (machine_is_qrd_skud_prime() ||
+-					machine_is_msm8625q_evbd()) {
+-			msm_acpuclock_init();
++	else if (cpu_is_msm8625q()) {
++		msm_acpuclock_init(1050000, 0);
++		platform_device_register(&msm8625q_device_acpuclk);
++	} else if (cpu_is_msm8625()) {
++
++		if (machine_is_qrd_skud_prime()) {
++			msm_acpuclock_init(1150000, 1275000);
+ 			platform_device_register(&msm8625q_device_acpuclk);
+ 		} else if (msm8625_cpu_id() == MSM8625)
+ 			platform_device_register(&msm7x27aa_device_acpuclk);
+-- 
+1.7.0.4
+

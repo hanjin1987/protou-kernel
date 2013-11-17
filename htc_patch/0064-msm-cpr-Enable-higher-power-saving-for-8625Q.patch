@@ -1,0 +1,39 @@
+From ead50da31182329e34a8a1131516716a301227b3 Mon Sep 17 00:00:00 2001
+From: Kaushal Kumar <kaushalk@codeaurora.org>
+Date: Fri, 30 Nov 2012 20:09:18 +0530
+Subject: [PATCH 64/75] msm: cpr: Enable higher power saving for 8625Q.
+
+The nominal frequency minimum voltage (Vmin) is 1V for
+8x25V2.0. However, for 8x25Q, the Vmin can be reduced
+to 0.95V for more power saving. The same could not be
+done on 8x25 V2.0 due to some L2 cache Vmin marginality.
+
+Change-Id: I5cec9d95d3c6adf2fcfb1abbd7ecae1314958107
+Signed-off-by: Kaushal Kumar <kaushalk@codeaurora.org>
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+(cherry picked from commit ceb0367f73a3cbd4dc6a6f61ee30d0ea4ed17a70)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 6a1cbc8..db2b8d4 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -1917,7 +1917,10 @@ static void __init msm_cpr_init(void)
+ 		msm_cpr_mode_data[TURBO_MODE].turbo_Vmin = 1100000;
+ 	}
+ 
+-	pr_info("%s: cpr: ring_osc: 0x%x\n", __func__,
++	if (cpu_is_msm8625q())
++		msm_cpr_mode_data[TURBO_MODE].nom_Vmin = 950000;
++
++	pr_debug("%s: cpr: ring_osc: 0x%x\n", __func__,
+ 		msm_cpr_mode_data[TURBO_MODE].ring_osc);
+ 	pr_info("%s: cpr: turbo_quot: 0x%x\n", __func__, cpr_info->turbo_quot);
+ 	pr_info("%s: cpr: pvs_fuse: 0x%x\n", __func__, cpr_info->pvs_fuse);
+-- 
+1.7.0.4
+

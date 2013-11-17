@@ -1,0 +1,32 @@
+From 598212e523f1d4067cd8bb5f4a063c2f01614084 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Thu, 6 Sep 2012 19:12:40 +0530
+Subject: [PATCH 06/75] msm_fb: Enable MIPI video mode interface on 8x25 EVB/SKU5
+
+Change to enable MIPI video mode on EVB/SKU5. Initialize the
+need_wait variable to zero to make sure that during suspend,
+we wait for MIPI_CMD_DONE interrupt only when the command
+mode engine is busy.
+
+Change-Id: I61a9132a9a9343d136ddc70ce76d8682f9ecf7bc
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ drivers/video/msm/mipi_dsi_host.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/msm/mipi_dsi_host.c b/drivers/video/msm/mipi_dsi_host.c
+index d7992a7..2b75193 100644
+--- a/drivers/video/msm/mipi_dsi_host.c
++++ b/drivers/video/msm/mipi_dsi_host.c
+@@ -1519,7 +1519,7 @@ void mipi_dsi_cmd_mdp_busy(void)
+ {
+ 	u32 status;
+ 	unsigned long flags;
+-	int need_wait;
++	int need_wait = 0;
+ 
+ 	spin_lock_irqsave(&dsi_mdp_lock, flags);
+ 	status = MIPI_INP(MIPI_DSI_BASE + 0x0004);/* DSI_STATUS */
+-- 
+1.7.0.4
+

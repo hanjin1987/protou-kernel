@@ -1,0 +1,44 @@
+From 3a724d9c5073525f3357a91d6e9d9bc77fbe8e60 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Fri, 9 Nov 2012 20:38:33 +0530
+Subject: [PATCH 59/75] msm: change RBCPR_SW_RESET_N offset for 8625Q
+
+RBCPR_SW_RESET_N register offset has changed for 8625Q.
+
+Change-Id: I02a3d3864f3ca532fcaaea453fb8aa80516190f5
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+(cherry picked from commit 0603b360106cfdfac84648a16f9423d3df6b94f3)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 9d80c15..f32196f 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -56,6 +56,7 @@
+ 
+ /* Reset Address of RBCPR (Active Low)*/
+ #define RBCPR_SW_RESET_N       (MSM_CSR_BASE + 0x64)
++#define RBCPR_SW_RESET_N_8625Q	(MSM_CSR_BASE + 0x28)
+ 
+ static struct resource gsbi0_qup_i2c_resources[] = {
+ 	{
+@@ -1796,7 +1797,11 @@ static void msm_cpr_clk_enable(void)
+ 	writel_relaxed(reg_val, A11S_TEST_BUS_SEL_ADDR);
+ 
+ 	/* Get CPR out of reset */
+-	writel_relaxed(0x1, RBCPR_SW_RESET_N);
++	if(cpu_is_msm8625q()) {
++		writel_relaxed(0x1, RBCPR_SW_RESET_N_8625Q);
++	} else {
++		writel_relaxed(0x1, RBCPR_SW_RESET_N);
++	}
+ }
+ 
+ static struct msm_cpr_config msm_cpr_pdata = {
+-- 
+1.7.0.4
+

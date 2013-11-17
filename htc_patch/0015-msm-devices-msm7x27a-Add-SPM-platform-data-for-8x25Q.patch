@@ -1,0 +1,64 @@
+From 2abfd388cc500005600d2ce2eb3e1090fd9b9444 Mon Sep 17 00:00:00 2001
+From: Murali Nalajala <mnalajal@codeaurora.org>
+Date: Fri, 19 Oct 2012 20:10:07 +0530
+Subject: [PATCH 15/75] msm:devices-msm7x27a: Add SPM platform data for 8x25Q
+
+Add SPM platform data to support for Quadcores on 8x25Q
+
+Signed-off-by: Murali Nalajala <mnalajal@codeaurora.org>
+(cherry picked from commit f194f6847cfab3ed5ab2bc29c5608164e756ccf6)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+(cherry picked from commit 56556f515f403a7fd666cc034aa3d01d666b48dc)
+
+Change-Id: Ief9a387806ac097b13ba179a1c3d17b79f5c2234
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 99d765a..226d613 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -771,6 +771,16 @@ static struct msm_spm_seq_entry msm_spm_seq_list[] __initdata = {
+ 		.notify_rpm = false,
+ 		.cmd = spm_pc_without_modem,
+ 	},
++	[2] = {
++		.mode = MSM_SPM_MODE_POWER_COLLAPSE,
++		.notify_rpm = false,
++		.cmd = spm_pc_without_modem,
++	},
++	[3] = {
++		.mode = MSM_SPM_MODE_POWER_COLLAPSE,
++		.notify_rpm = false,
++		.cmd = spm_pc_without_modem,
++	},
+ };
+ 
+ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
+@@ -788,6 +798,20 @@ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
+ 		.num_modes = ARRAY_SIZE(msm_spm_seq_list),
+ 		.modes = msm_spm_seq_list,
+ 	},
++	[2] = {
++		.reg_base_addr = MSM_SAW2_BASE,
++		.reg_init_values[MSM_SPM_REG_SAW2_CFG] = 0x0,
++		.reg_init_values[MSM_SPM_REG_SAW2_SPM_CTL] = 0x01,
++		.num_modes = ARRAY_SIZE(msm_spm_seq_list),
++		.modes = msm_spm_seq_list,
++	},
++	[3] = {
++		.reg_base_addr = MSM_SAW3_BASE,
++		.reg_init_values[MSM_SPM_REG_SAW2_CFG] = 0x0,
++		.reg_init_values[MSM_SPM_REG_SAW2_SPM_CTL] = 0x01,
++		.num_modes = ARRAY_SIZE(msm_spm_seq_list),
++		.modes = msm_spm_seq_list,
++	},
+ };
+ 
+ void __init msm8x25_spm_device_init(void)
+-- 
+1.7.0.4
+

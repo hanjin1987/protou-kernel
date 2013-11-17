@@ -1,0 +1,39 @@
+From 15903199f8f4aadf9d30352b5114ba4ea4e47e4e Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Sat, 1 Dec 2012 17:09:26 +0530
+Subject: [PATCH 69/75] msm7627a: Add support for BT for the 8625Q EVBD/SKUD devices
+
+Add the BT Reset Enable GPIO for EVBD device.
+
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+(cherry picked from commit 1f8146ba1c3628a34b3d4e10b5be87470144b2ac)
+
+Change-Id: I8485772f01709e31fc68c50ce209615487fd6657
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-bt.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-bt.c b/arch/arm/mach-msm/board-msm7627a-bt.c
+index b3ff188..98762ea 100644
+--- a/arch/arm/mach-msm/board-msm7627a-bt.c
++++ b/arch/arm/mach-msm/board-msm7627a-bt.c
+@@ -103,12 +103,12 @@ static void gpio_bt_config(void)
+ 	if (machine_is_msm7627a_qrd1())
+ 		gpio_bt_sys_rest_en = 114;
+ 	if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-				|| machine_is_msm8625_evt()
+-				|| machine_is_qrd_skud_prime())
++				|| machine_is_msm8625_evt())
+ 		gpio_bt_sys_rest_en = 16;
+ 	if (machine_is_msm8625_qrd7())
+ 		gpio_bt_sys_rest_en = 88;
+-	if (machine_is_qrd_skud_prime())
++	if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd()
++				|| machine_is_msm8625q_skud())
+ 		gpio_bt_sys_rest_en = 35;
+ 	if (machine_is_msm7627a_qrd3()) {
+ 		if (socinfo == 0x70002)
+-- 
+1.7.0.4
+

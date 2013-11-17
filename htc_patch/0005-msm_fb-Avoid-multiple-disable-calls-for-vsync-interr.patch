@@ -1,0 +1,112 @@
+From d47b9ad4cf7fe2fd650421adc2d5a7a11a5ca779 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Tue, 16 Oct 2012 18:24:01 +0530
+Subject: [PATCH 05/75] msm_fb: Avoid multiple disable calls for vsync interrupt
+
+For LCDC and DSI Video mode panels, there seem to be multiple
+disable calls for Vsync interrupt term. Change to avoid this
+issue by proper synchronization of vsync term and DMA term.
+
+Change-Id: Iaf11ba92cc7db55c6196add2d7dea581cb29fc8a
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ drivers/video/msm/mdp.c               |    5 +++--
+ drivers/video/msm/mdp_dma_dsi_video.c |   12 +++++++-----
+ drivers/video/msm/mdp_dma_lcdc.c      |   11 ++++++-----
+ 3 files changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/video/msm/mdp.c b/drivers/video/msm/mdp.c
+index 1d80cb9..82b76f3 100644
+--- a/drivers/video/msm/mdp.c
++++ b/drivers/video/msm/mdp.c
+@@ -1858,13 +1858,14 @@ irqreturn_t mdp_isr(int irq, void *ptr)
+ 			dma = &dma2_data;
+ 			spin_lock_irqsave(&mdp_spin_lock, flag);
+ 			vsync_isr = vsync_cntrl.vsync_irq_enabled;
++			disabled_clocks = vsync_cntrl.disabled_clocks;
+ 			/* let's disable LCDC interrupt */
+ 			if (dma->waiting) {
+ 				dma->waiting = FALSE;
+ 				complete(&dma->comp);
+ 			}
+ 
+-			if (!vsync_isr) {
++			if (!vsync_isr && !vsync_cntrl.disabled_clocks) {
+ 				mdp_intr_mask &= ~LCDC_FRAME_START;
+ 				outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+ 				mdp_disable_irq_nosync(MDP_VSYNC_TERM);
+@@ -1874,7 +1875,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
+ 			}
+ 			spin_unlock_irqrestore(&mdp_spin_lock, flag);
+ 
+-			if (!vsync_isr)
++			if (!vsync_isr && !disabled_clocks)
+ 				mdp_pipe_ctrl(MDP_CMD_BLOCK,
+ 					MDP_BLOCK_POWER_OFF, TRUE);
+ 
+diff --git a/drivers/video/msm/mdp_dma_dsi_video.c b/drivers/video/msm/mdp_dma_dsi_video.c
+index 6033028..2b9463b 100644
+--- a/drivers/video/msm/mdp_dma_dsi_video.c
++++ b/drivers/video/msm/mdp_dma_dsi_video.c
+@@ -305,20 +305,22 @@ void mdp_dma_video_vsync_ctrl(int enable)
+ 		INIT_COMPLETION(vsync_cntrl.vsync_wait);
+ 
+ 	vsync_cntrl.vsync_irq_enabled = enable;
+-	if (!enable)
+-		vsync_cntrl.disabled_clocks = 0;
+ 	disabled_clocks = vsync_cntrl.disabled_clocks;
+ 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+ 
+-	if (enable && disabled_clocks) {
++	if (enable && disabled_clocks)
+ 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
+-		spin_lock_irqsave(&mdp_spin_lock, flag);
++
++	spin_lock_irqsave(&mdp_spin_lock, flag);
++	if (enable && vsync_cntrl.disabled_clocks) {
+ 		outp32(MDP_INTR_CLEAR, LCDC_FRAME_START);
+ 		mdp_intr_mask |= LCDC_FRAME_START;
+ 		outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+ 		mdp_enable_irq(MDP_VSYNC_TERM);
+-		spin_unlock_irqrestore(&mdp_spin_lock, flag);
++		vsync_cntrl.disabled_clocks = 0;
+ 	}
++	spin_unlock_irqrestore(&mdp_spin_lock, flag);
++
+ 	if (vsync_cntrl.vsync_irq_enabled &&
+ 		atomic_read(&vsync_cntrl.suspend) == 0)
+ 		atomic_set(&vsync_cntrl.vsync_resume, 1);
+diff --git a/drivers/video/msm/mdp_dma_lcdc.c b/drivers/video/msm/mdp_dma_lcdc.c
+index 9b66eef..6803a8d 100644
+--- a/drivers/video/msm/mdp_dma_lcdc.c
++++ b/drivers/video/msm/mdp_dma_lcdc.c
+@@ -385,20 +385,21 @@ void mdp_dma_lcdc_vsync_ctrl(int enable)
+ 		INIT_COMPLETION(vsync_cntrl.vsync_wait);
+ 
+ 	vsync_cntrl.vsync_irq_enabled = enable;
+-	if (!enable)
+-		vsync_cntrl.disabled_clocks = 0;
+ 	disabled_clocks = vsync_cntrl.disabled_clocks;
+ 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+ 
+-	if (enable && disabled_clocks) {
++	if (enable && disabled_clocks)
+ 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
+-		spin_lock_irqsave(&mdp_spin_lock, flag);
++
++	spin_lock_irqsave(&mdp_spin_lock, flag);
++	if (enable && vsync_cntrl.disabled_clocks) {
+ 		outp32(MDP_INTR_CLEAR, LCDC_FRAME_START);
+ 		mdp_intr_mask |= LCDC_FRAME_START;
+ 		outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+ 		mdp_enable_irq(MDP_VSYNC_TERM);
+-		spin_unlock_irqrestore(&mdp_spin_lock, flag);
++		vsync_cntrl.disabled_clocks = 0;
+ 	}
++	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+ 
+ 	if (vsync_cntrl.vsync_irq_enabled &&
+ 		atomic_read(&vsync_cntrl.suspend) == 0)
+-- 
+1.7.0.4
+

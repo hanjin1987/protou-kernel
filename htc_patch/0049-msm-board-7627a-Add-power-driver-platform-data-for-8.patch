@@ -1,0 +1,138 @@
+From 5c810b99d23a8d8a4e202b1a2d891cf745aea9cb Mon Sep 17 00:00:00 2001
+From: Murali Nalajala <mnalajal@codeaurora.org>
+Date: Fri, 19 Oct 2012 13:48:44 +0530
+Subject: [PATCH 49/75] msm: board-7627a: Add power driver platform data for 8x25Q
+
+Add different LPM modes platform data for 8x25Q.
+
+Signed-off-by: Murali Nalajala <mnalajal@codeaurora.org>
+(cherry picked from commit 28ced1b50a13a87303165ddf047205eddbbb4fa9)
+
+Change-Id: I07846c4729d3653faf147241fc6fc5796b35b815
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7x27a.c |   41 +++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-msm/board-qrd7627a.c |   41 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 80 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7x27a.c b/arch/arm/mach-msm/board-msm7x27a.c
+index 1093488..99c8700 100644
+--- a/arch/arm/mach-msm/board-msm7x27a.c
++++ b/arch/arm/mach-msm/board-msm7x27a.c
+@@ -378,7 +378,8 @@ static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+ };
+ 
+ /* 8625 PM platform data */
+-static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
++static struct msm_pm_platform_data
++		msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * CONFIG_NR_CPUS] = {
+ 	/* CORE0 entries */
+ 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE)] = {
+ 					.idle_supported = 1,
+@@ -436,6 +437,44 @@ static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
+ 					.residency = 10,
+ 	},
+ 
++	/* picked latency & redisdency values from 7x30 */
++	[MSM_PM_MODE(2, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 0,
++					.suspend_enabled = 0,
++					.latency = 500,
++					.residency = 6000,
++	},
++
++	[MSM_PM_MODE(2, MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 1,
++					.suspend_enabled = 1,
++					.latency = 2,
++					.residency = 10,
++	},
++
++	/* picked latency & redisdency values from 7x30 */
++	[MSM_PM_MODE(3, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 0,
++					.suspend_enabled = 0,
++					.latency = 500,
++					.residency = 6000,
++	},
++
++	[MSM_PM_MODE(3, MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 1,
++					.suspend_enabled = 1,
++					.latency = 2,
++					.residency = 10,
++	},
++
+ };
+ 
+ static struct msm_pm_boot_platform_data msm_pm_8625_boot_pdata __initdata = {
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index 8ef3f94..decb461 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -350,7 +350,8 @@ static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+ };
+ 
+ /* 8625 PM platform data */
+-static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
++static struct msm_pm_platform_data
++		msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * CONFIG_NR_CPUS] = {
+ 	/* CORE0 entries */
+ 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE)] = {
+ 					.idle_supported = 1,
+@@ -408,6 +409,44 @@ static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
+ 					.residency = 10,
+ 	},
+ 
++	/* picked latency & redisdency values from 7x30 */
++	[MSM_PM_MODE(2, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 0,
++					.suspend_enabled = 0,
++					.latency = 500,
++					.residency = 6000,
++	},
++
++	[MSM_PM_MODE(2, MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 1,
++					.suspend_enabled = 1,
++					.latency = 2,
++					.residency = 10,
++	},
++
++	/* picked latency & redisdency values from 7x30 */
++	[MSM_PM_MODE(3, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 0,
++					.suspend_enabled = 0,
++					.latency = 500,
++					.residency = 6000,
++	},
++
++	[MSM_PM_MODE(3, MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT)] = {
++					.idle_supported = 1,
++					.suspend_supported = 1,
++					.idle_enabled = 1,
++					.suspend_enabled = 1,
++					.latency = 2,
++					.residency = 10,
++	},
++
+ };
+ 
+ static struct msm_pm_boot_platform_data msm_pm_8625_boot_pdata __initdata = {
+-- 
+1.7.0.4
+

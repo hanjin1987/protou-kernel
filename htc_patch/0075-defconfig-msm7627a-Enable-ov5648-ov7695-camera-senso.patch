@@ -1,0 +1,60 @@
+From 04840ca403e17cb5afc9c09e854ff1b6158b0851 Mon Sep 17 00:00:00 2001
+From: Adarsh Bajpai <abajpai@codeaurora.org>
+Date: Fri, 30 Nov 2012 20:55:13 +0530
+Subject: [PATCH 75/75] defconfig: msm7627a: Enable ov5648 & ov7695 camera sensors
+
+Enable OV5647 (5MP) & OV7695 (1MP) camera sensors for QPR
+
+Change-Id: I2b03c77f17e6aaf4b64e583afdb62e0e5473154a
+Signed-off-by: Adarsh Bajpai <abajpai@codeaurora.org>
+(cherry picked from commit ed79b0772234713ac0235a790c6d2d0d20d3a4b9)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/configs/msm7627a-perf_defconfig |    2 ++
+ arch/arm/configs/msm7627a_defconfig      |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/configs/msm7627a-perf_defconfig b/arch/arm/configs/msm7627a-perf_defconfig
+index 8638318..c46c26a 100644
+--- a/arch/arm/configs/msm7627a-perf_defconfig
++++ b/arch/arm/configs/msm7627a-perf_defconfig
+@@ -245,6 +245,7 @@ CONFIG_VIDEOBUF2_MSM_MEM=y
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_MSM_CAMERA_V4L2=y
+ CONFIG_OV5647=y
++CONFIG_OV5648=y
+ CONFIG_AD5046_ACT=y
+ CONFIG_WEBCAM_OV9726=y
+ CONFIG_MT9E013=y
+@@ -255,6 +256,7 @@ CONFIG_OV8825=y
+ CONFIG_MSM_CAMERA_SENSOR=y
+ CONFIG_MSM_ACTUATOR=y
+ CONFIG_OV7692=y
++CONFIG_OV7695=y
+ CONFIG_RADIO_TAVARUA=y
+ CONFIG_ION=y
+ CONFIG_ION_MSM=y
+diff --git a/arch/arm/configs/msm7627a_defconfig b/arch/arm/configs/msm7627a_defconfig
+index 3d60bce..cc4a14e 100644
+--- a/arch/arm/configs/msm7627a_defconfig
++++ b/arch/arm/configs/msm7627a_defconfig
+@@ -245,6 +245,7 @@ CONFIG_VIDEOBUF2_MSM_MEM=y
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_MSM_CAMERA_V4L2=y
+ CONFIG_OV5647=y
++CONFIG_OV5648=y
+ CONFIG_AD5046_ACT=y
+ CONFIG_WEBCAM_OV9726=y
+ CONFIG_MT9E013=y
+@@ -255,6 +256,7 @@ CONFIG_OV8825=y
+ CONFIG_MSM_CAMERA_SENSOR=y
+ CONFIG_MSM_ACTUATOR=y
+ CONFIG_OV7692=y
++CONFIG_OV7695=y
+ CONFIG_RADIO_TAVARUA=y
+ CONFIG_ION=y
+ CONFIG_ION_MSM=y
+-- 
+1.7.0.4
+

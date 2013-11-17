@@ -1,0 +1,41 @@
+From 3aa4ae6f3df5767f59e3f009864e6cafe40076ba Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Tue, 16 Oct 2012 19:37:59 +0530
+Subject: [PATCH 04/75] board-msm7627a: msm: Add support for continuous splash screen.
+
+This change adds support for continuous splash screen on SKUD
+prime device on MIPI HX3839B panel.
+
+Change-Id: Idd1da7a44188ed78b08e68e856e9a58d922722e2
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-display.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-display.c b/arch/arm/mach-msm/board-msm7627a-display.c
+index e4003e7..8c1fc25 100644
+--- a/arch/arm/mach-msm/board-msm7627a-display.c
++++ b/arch/arm/mach-msm/board-msm7627a-display.c
+@@ -1460,10 +1460,6 @@ void msm7x27a_set_display_params(char *prim_panel)
+ 			strnlen("mipi_video_nt35510_wvga",
+ 				PANEL_NAME_MAX_LEN)))
+ 			disable_splash = 1;
+-
+-	if (machine_is_qrd_skud_prime())
+-		disable_splash = 1;
+-
+ 	}
+ }
+ 
+@@ -1490,7 +1486,7 @@ void __init msm_fb_add_devices(void)
+ 		platform_add_devices(qrd3_fb_devices,
+ 						ARRAY_SIZE(qrd3_fb_devices));
+ 	} else if (machine_is_qrd_skud_prime()) {
+-		mdp_pdata.cont_splash_enabled = 0x0;
++		mdp_pdata.cont_splash_enabled = 0x1;
+ 		platform_add_devices(skud_fb_devices,
+ 				ARRAY_SIZE(skud_fb_devices));
+ 	} else {
+-- 
+1.7.0.4
+

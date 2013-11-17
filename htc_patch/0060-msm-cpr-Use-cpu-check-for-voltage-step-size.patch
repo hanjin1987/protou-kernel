@@ -1,0 +1,32 @@
+From d5ac1e2d05b41d705d34822a1460c5bcd723b951 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Fri, 30 Nov 2012 12:19:45 +0530
+Subject: [PATCH 60/75] msm: cpr: Use cpu check for voltage step size
+
+Earlier, platform check is used for voltage step size of cpr.
+Cpu check is suffice, instead of using a long chain of platform
+check.
+
+Change-Id: I6e29bccf977baa14afa83c23b451d7d7179a2622
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index f32196f..5a001cf 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -1934,7 +1934,7 @@ static void __init msm_cpr_init(void)
+ 
+ 	msm_cpr_clk_enable();
+ 
+-	if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd())
++	if (cpu_is_msm8625q())
+ 		msm_cpr_pdata.step_size = 6250;
+ 
+ 	platform_device_register(&msm8625_vp_device);
+-- 
+1.7.0.4
+

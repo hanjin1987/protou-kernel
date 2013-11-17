@@ -1,0 +1,34 @@
+From 24c41d30ab4cd1d8728ffb56035b57839a8502a2 Mon Sep 17 00:00:00 2001
+From: Juffin Alex Varghese <jalex@codeaurora.org>
+Date: Mon, 29 Oct 2012 18:48:40 +0530
+Subject: [PATCH 13/75] Bluetooth: Kernel panic fix when marimba->client is NULL
+
+dev_err cause kernel panic when marimba->client is NULL to
+avoid panic replace dev_err with pr_err.
+
+Signed-off-by: Juffin Alex Varghese <jalex@codeaurora.org>
+(cherry picked from commit 1949cbd75ae5210af4c2a0a568c9eadd4e1baa10)
+
+Change-Id: If2b229ccd6843fc913ea5e441819428e8137e657
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/mfd/marimba-core.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/marimba-core.c b/drivers/mfd/marimba-core.c
+index 70ec2ec..49fe925 100644
+--- a/drivers/mfd/marimba-core.c
++++ b/drivers/mfd/marimba-core.c
+@@ -852,8 +852,7 @@ static int __devinit marimba_probe(struct i2c_client *client,
+ 			ssbi_adap = NULL;
+ 
+ 		if (!marimba->client) {
+-			dev_err(&marimba->client->dev,
+-				"can't attach client %d\n", i);
++			pr_err("can't attach client %d\n", i);
+ 			status = -ENOMEM;
+ 			goto fail;
+ 		}
+-- 
+1.7.0.4
+

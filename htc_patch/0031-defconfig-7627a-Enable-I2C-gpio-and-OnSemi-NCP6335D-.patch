@@ -1,0 +1,58 @@
+From 9afb9f970b5ab481a095c3f3b80a8f5d101065bf Mon Sep 17 00:00:00 2001
+From: Anirudh Ghayal <aghayal@codeaurora.org>
+Date: Tue, 18 Sep 2012 16:46:40 +0530
+Subject: [PATCH 31/75] defconfig: 7627a: Enable I2C-gpio and OnSemi NCP6335D regulator
+
+8625q supports the OnSemi NCP6335D regulator over the I2C
+interface to control APPS core voltage.
+
+Change-Id: I67a753c0832ee7b721d9db95d39c62b1bea16996
+Signed-off-by: Anirudh Ghayal <aghayal@codeaurora.org>
+---
+ arch/arm/configs/msm7627a-perf_defconfig |    2 ++
+ arch/arm/configs/msm7627a_defconfig      |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/configs/msm7627a-perf_defconfig b/arch/arm/configs/msm7627a-perf_defconfig
+index 0d479b3..8638318 100644
+--- a/arch/arm/configs/msm7627a-perf_defconfig
++++ b/arch/arm/configs/msm7627a-perf_defconfig
+@@ -223,6 +223,7 @@ CONFIG_DIAG_CHAR=y
+ # CONFIG_HW_RANDOM is not set
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_GPIO=y
+ # CONFIG_I2C_MSM is not set
+ CONFIG_I2C_QUP=y
+ CONFIG_DEBUG_GPIO=y
+@@ -232,6 +233,7 @@ CONFIG_POWER_SUPPLY=y
+ CONFIG_BATTERY_MSM=y
+ CONFIG_SENSORS_MSM_ADC=y
+ CONFIG_MARIMBA_CORE=y
++CONFIG_REGULATOR_ONSEMI_NCP6335D=y
+ CONFIG_REGULATOR_MSM_GPIO=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_CONTROLLER=y
+diff --git a/arch/arm/configs/msm7627a_defconfig b/arch/arm/configs/msm7627a_defconfig
+index 8853d1c..3d60bce 100644
+--- a/arch/arm/configs/msm7627a_defconfig
++++ b/arch/arm/configs/msm7627a_defconfig
+@@ -223,6 +223,7 @@ CONFIG_DIAG_CHAR=y
+ # CONFIG_HW_RANDOM is not set
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_GPIO=y
+ # CONFIG_I2C_MSM is not set
+ CONFIG_I2C_QUP=y
+ CONFIG_DEBUG_GPIO=y
+@@ -232,6 +233,7 @@ CONFIG_POWER_SUPPLY=y
+ CONFIG_BATTERY_MSM=y
+ CONFIG_SENSORS_MSM_ADC=y
+ CONFIG_MARIMBA_CORE=y
++CONFIG_REGULATOR_ONSEMI_NCP6335D=y
+ CONFIG_REGULATOR_MSM_GPIO=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_CONTROLLER=y
+-- 
+1.7.0.4
+

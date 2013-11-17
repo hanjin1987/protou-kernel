@@ -1,0 +1,47 @@
+From 971db138c054eef925be93b4d0465c78b0854cc0 Mon Sep 17 00:00:00 2001
+From: Juffin Alex Varghese <jalex@codeaurora.org>
+Date: Mon, 29 Oct 2012 17:30:28 +0530
+Subject: [PATCH 40/75] Bluetooth: Bringup BT on SKUD prime
+
+Added support for Bluetooth on SKUD by Configuring GPIOs as per
+the hardware.
+
+Signed-off-by: Juffin Alex Varghese <jalex@codeaurora.org>
+(cherry picked from commit 7f0be6298938a85e6f838e200c0cff540703b9f7)
+
+Conflicts:
+
+	arch/arm/mach-msm/board-msm7627a-bt.c
+
+Change-Id: I699fb4e8f0a39535c5fe5fa95b50b382ad271946
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-bt.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-bt.c b/arch/arm/mach-msm/board-msm7627a-bt.c
+index bcc9645..b3ff188 100644
+--- a/arch/arm/mach-msm/board-msm7627a-bt.c
++++ b/arch/arm/mach-msm/board-msm7627a-bt.c
+@@ -108,6 +108,8 @@ static void gpio_bt_config(void)
+ 		gpio_bt_sys_rest_en = 16;
+ 	if (machine_is_msm8625_qrd7())
+ 		gpio_bt_sys_rest_en = 88;
++	if (machine_is_qrd_skud_prime())
++		gpio_bt_sys_rest_en = 35;
+ 	if (machine_is_msm7627a_qrd3()) {
+ 		if (socinfo == 0x70002)
+ 			gpio_bt_sys_rest_en = 88;
+@@ -976,9 +978,6 @@ void __init msm7627a_bt_power_init(void)
+ 	int i, rc = 0;
+ 	struct device *dev;
+ 
+-	if (machine_is_qrd_skud_prime())
+-		return;
+-
+ 	gpio_bt_config();
+ 
+ 	rc = i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
+-- 
+1.7.0.4
+

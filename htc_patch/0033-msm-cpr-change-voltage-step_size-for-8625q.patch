@@ -1,0 +1,32 @@
+From 2588dc41ddc966ad25ee5917c219029ee1fabd1c Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Fri, 9 Nov 2012 20:04:44 +0530
+Subject: [PATCH 33/75] msm: cpr: change voltage step_size for 8625q
+
+In 8625q, the external buck regulator is driving power to apps
+core. And its voltage step size is 6250uV. So, change voltage
+step_size to 6250uV in msm_cpr_pdata for 8625q.
+
+Change-Id: I431f1f6c4ed9242d28642765c04c56b3b9073af4
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 09706de..737436f 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -1899,6 +1899,9 @@ static void __init msm_cpr_init(void)
+ 
+ 	msm_cpr_clk_enable();
+ 
++	if (machine_is_qrd_skud_prime())
++		msm_cpr_pdata.step_size = 6250;
++
+ 	platform_device_register(&msm8625_vp_device);
+ 	platform_device_register(&msm8625_device_cpr);
+ }
+-- 
+1.7.0.4
+

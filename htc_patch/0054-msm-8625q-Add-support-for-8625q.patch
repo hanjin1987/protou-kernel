@@ -1,0 +1,447 @@
+From 8fb4847d8b003c7ec7e9d0e3668d1a80d2082196 Mon Sep 17 00:00:00 2001
+From: Utsab Bose <ubose@codeaurora.org>
+Date: Thu, 8 Nov 2012 18:52:38 +0530
+Subject: [PATCH 54/75] msm: 8625q: Add support for 8625q.
+
+As 8625q does not come with a new version like 3.0,
+The function cpu_is_msm8625q() is added to detect
+this device into the code wherever required.
+
+Change-Id: If2fcffc94fbb1a9ee4a71df967a629834879e970
+Signed-off-by: Utsab Bose <ubose@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7x27a.c   |    8 ++++----
+ arch/arm/mach-msm/board-qrd7627a.c   |   10 +++++-----
+ arch/arm/mach-msm/cpufreq.c          |    2 +-
+ arch/arm/mach-msm/devices-msm7x27a.c |   30 +++++++++++++++---------------
+ arch/arm/mach-msm/msm7k_fiq.c        |    2 +-
+ arch/arm/mach-msm/pm-boot.c          |    4 ++--
+ arch/arm/mach-msm/pm2.c              |   26 +++++++++++++-------------
+ arch/arm/mach-msm/timer.c            |    8 +++++---
+ drivers/gpu/msm/adreno.c             |    2 +-
+ 9 files changed, 47 insertions(+), 45 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7x27a.c b/arch/arm/mach-msm/board-msm7x27a.c
+index 99c8700..a356e51 100644
+--- a/arch/arm/mach-msm/board-msm7x27a.c
++++ b/arch/arm/mach-msm/board-msm7x27a.c
+@@ -1037,7 +1037,7 @@ static void msm_adsp_add_pdev(void)
+ 	}
+ 	rpc_adsp_pdev->prog = ADSP_RPC_PROG;
+ 
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		rpc_adsp_pdev->pdev = msm8625_device_adsp;
+ 	else
+ 		rpc_adsp_pdev->pdev = msm_adsp_device;
+@@ -1114,7 +1114,7 @@ static void __init msm7x27a_uartdm_config(void)
+ {
+ 	msm7x27a_cfg_uart2dm_serial();
+ 	msm_uart_dm1_pdata.wakeup_irq = gpio_to_irq(UART1DM_RX_GPIO);
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		msm8625_device_uart_dm1.dev.platform_data =
+ 			&msm_uart_dm1_pdata;
+ 	else
+@@ -1123,7 +1123,7 @@ static void __init msm7x27a_uartdm_config(void)
+ 
+ static void __init msm7x27a_otg_gadget(void)
+ {
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		msm_otg_pdata.swfi_latency =
+ 		msm8625_pm_data[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
+ 		msm8625_device_otg.dev.platform_data = &msm_otg_pdata;
+@@ -1163,7 +1163,7 @@ static void __init msm7x2x_init(void)
+ 	/* Initialize regulators first so that other devices can use them */
+ 	msm7x27a_init_regulators();
+ 	msm_adsp_add_pdev();
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		msm8625_device_i2c_init();
+ 	else
+ 		msm7x27a_device_i2c_init();
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index decb461..0106737 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -944,7 +944,7 @@ static void msmqrd_adsp_add_pdev(void)
+ 	}
+ 	rpc_adsp_pdev->prog = ADSP_RPC_PROG;
+ 
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		rpc_adsp_pdev->pdev = msm8625_device_adsp;
+ 	else
+ 		rpc_adsp_pdev->pdev = msm_adsp_device;
+@@ -1033,7 +1033,7 @@ static void __init add_platform_devices(void)
+ static void __init qrd7627a_uart1dm_config(void)
+ {
+ 	msm_uart_dm1_pdata.wakeup_irq = gpio_to_irq(UART1DM_RX_GPIO);
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		msm8625_device_uart_dm1.dev.platform_data =
+ 			&msm_uart_dm1_pdata;
+ 	else
+@@ -1042,7 +1042,7 @@ static void __init qrd7627a_uart1dm_config(void)
+ 
+ static void __init qrd7627a_otg_gadget(void)
+ {
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		msm_otg_pdata.swfi_latency = msm8625_pm_data
+ 		[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
+ 		msm8625_device_otg.dev.platform_data = &msm_otg_pdata;
+@@ -1061,7 +1061,7 @@ static void __init qrd7627a_otg_gadget(void)
+ static void __init msm_pm_init(void)
+ {
+ 
+-	if (!cpu_is_msm8625()) {
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q()) {
+ 		msm_pm_set_platform_data(msm7627a_pm_data,
+ 				ARRAY_SIZE(msm7627a_pm_data));
+ 		BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
+@@ -1080,7 +1080,7 @@ static void __init msm_qrd_init(void)
+ 	msm7627a_init_regulators();
+ 	msmqrd_adsp_add_pdev();
+ 
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		msm8625_device_i2c_init();
+ 	else
+ 		msm7627a_device_i2c_init();
+diff --git a/arch/arm/mach-msm/cpufreq.c b/arch/arm/mach-msm/cpufreq.c
+index 0fa1e2d..5ed5e67 100644
+--- a/arch/arm/mach-msm/cpufreq.c
++++ b/arch/arm/mach-msm/cpufreq.c
+@@ -267,7 +267,7 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
+ 	 * be changed independently. Each cpu is bound to
+ 	 * same frequency. Hence set the cpumask to all cpu.
+ 	 */
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		cpumask_setall(policy->cpus);
+ 
+ 	if (cpufreq_frequency_table_cpuinfo(policy, table)) {
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 02fbf1a..09139c9 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -518,7 +518,7 @@ static struct msm_pm_irq_calls msm8625_pm_irq_calls = {
+ 
+ void __init msm_pm_register_irqs(void)
+ {
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		msm_pm_set_irq_extns(&msm8625_pm_irq_calls);
+ 	else
+ 		msm_pm_set_irq_extns(&msm7x27a_pm_irq_calls);
+@@ -533,8 +533,9 @@ static struct msm_pm_cpr_ops msm8625_pm_cpr_ops = {
+ void __init msm_pm_register_cpr_ops(void)
+ {
+ 	/* CPR presents on revision >= v2.0 chipsets */
+-	if (cpu_is_msm8625() &&
++	if ((cpu_is_msm8625() &&
+ 			SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2)
++			|| cpu_is_msm8625q())
+ 		msm_pm_set_cpr_ops(&msm8625_pm_cpr_ops);
+ }
+ 
+@@ -947,7 +948,7 @@ void __init msm7x25a_kgsl_3d0_init(void)
+ 
+ void __init msm8x25_kgsl_3d0_init(void)
+ {
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		kgsl_3d0_pdata.idle_timeout = HZ/5;
+ 		kgsl_3d0_pdata.strtstp_sleepwake = false;
+ 
+@@ -1404,7 +1405,7 @@ int __init msm_add_sdcc(unsigned int controller, struct mmc_platform_data *plat)
+ 	if (controller < 1 || controller > 4)
+ 		return -EINVAL;
+ 
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		pdev = msm8625_sdcc_devices[controller-1];
+ 	else
+ 		pdev = msm_sdcc_devices[controller-1];
+@@ -1493,7 +1494,7 @@ int msm_add_host(unsigned int host, struct msm_usb_host_platform_data *plat)
+ {
+ 	struct platform_device	*pdev;
+ 
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		pdev = msm8625_host_devices[host];
+ 	else
+ 		pdev = msm_host_devices[host];
+@@ -1596,12 +1597,12 @@ struct platform_device mipi_dsi_device;
+ void __init msm_fb_register_device(char *name, void *data)
+ {
+ 	if (!strncmp(name, "mdp", 3)) {
+-		if (cpu_is_msm8625())
++		if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 			msm_register_device(&msm8625_mdp_device, data);
+ 		else
+ 			msm_register_device(&msm_mdp_device, data);
+ 	} else if (!strncmp(name, "mipi_dsi", 8)) {
+-		if (cpu_is_msm8625()) {
++		if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 			msm_register_device(&msm8625_mipi_dsi_device, data);
+ 			mipi_dsi_device = msm8625_mipi_dsi_device;
+ 		} else {
+@@ -2062,8 +2063,7 @@ int __init msm7x2x_misc_init(void)
+ 	msm_clock_init(&msm7x27a_clock_init_data);
+ 	if (cpu_is_msm7x27aa() || cpu_is_msm7x25ab())
+ 		platform_device_register(&msm7x27aa_device_acpuclk);
+-	else if (cpu_is_msm8625()) {
+-
++	else if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		if (machine_is_qrd_skud_prime()) {
+ 			msm_acpuclock_init();
+ 			platform_device_register(&msm8625q_device_acpuclk);
+@@ -2077,11 +2077,11 @@ int __init msm7x2x_misc_init(void)
+ 		platform_device_register(&msm7x27a_device_acpuclk);
+ 	}
+ 
+-	if (cpu_is_msm8625() &&
+-			(SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2))
++	if (cpu_is_msm8625q() || (cpu_is_msm8625() &&
++			(SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2)))
+ 		msm_cpr_init();
+ 
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		pl310_resources[1].start = INT_L2CC_INTR;
+ 
+ 	platform_device_register(&pl310_erp_device);
+@@ -2103,7 +2103,7 @@ static int __init msm7x27x_cache_init(void)
+ 		   (0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) | \
+ 		   (0x1 << L2X0_AUX_CTRL_EVNT_MON_BUS_EN_SHIFT);
+ 
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		/* Way Size 011(0x3) 64KB */
+ 		aux_ctrl |= (0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) | \
+ 			    (0x1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) | \
+@@ -2119,7 +2119,7 @@ static int __init msm7x27x_cache_init(void)
+ 	}
+ 
+ 	l2x0_init(MSM_L2CC_BASE, aux_ctrl, L2X0_AUX_CTRL_MASK);
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		pctrl = readl_relaxed(MSM_L2CC_BASE + L2X0_PREFETCH_CTRL);
+ 		pr_info("Prfetch Ctrl: 0x%08x\n", pctrl);
+ 	}
+@@ -2156,7 +2156,7 @@ void __init msm8625_map_io(void)
+ 
+ static int msm7627a_init_gpio(void)
+ {
+-	if (cpu_is_msm8625())
++	if (cpu_is_msm8625() || cpu_is_msm8625q())
+ 		platform_device_register(&msm8625_device_gpio);
+ 	else
+ 		platform_device_register(&msm_device_gpio);
+diff --git a/arch/arm/mach-msm/msm7k_fiq.c b/arch/arm/mach-msm/msm7k_fiq.c
+index 421b4f9..d644121 100644
+--- a/arch/arm/mach-msm/msm7k_fiq.c
++++ b/arch/arm/mach-msm/msm7k_fiq.c
+@@ -75,7 +75,7 @@ static int __init msm_setup_fiq_handler(void)
+ 
+ static int __init init7k_fiq(void)
+ {
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		return 0;
+ 
+ 	if (msm_setup_fiq_handler())
+diff --git a/arch/arm/mach-msm/pm-boot.c b/arch/arm/mach-msm/pm-boot.c
+index e2764cd..ef62473 100644
+--- a/arch/arm/mach-msm/pm-boot.c
++++ b/arch/arm/mach-msm/pm-boot.c
+@@ -137,7 +137,7 @@ int __devinit msm_pm_boot_init(struct msm_pm_boot_platform_data *pdata)
+ 			= msm_pm_config_rst_vector_after_pc;
+ 		break;
+ 	case MSM_PM_BOOT_CONFIG_REMAP_BOOT_ADDR:
+-		if (!cpu_is_msm8625()) {
++		if (!cpu_is_msm8625() && !cpu_is_msm8625q()) {
+ 			void *remapped;
+ 
+ 			/*
+@@ -200,7 +200,7 @@ int __devinit msm_pm_boot_init(struct msm_pm_boot_platform_data *pdata)
+ 					pdata->v_addr + mpa5_cfg_ctl[0]);
+ 
+ 			/* 8x25Q changes */
+-			if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 3) {
++			if (cpu_is_msm8625q()) {
+ 				/* write 'entry' to boot remapper register */
+ 				__raw_writel(entry, (pdata->v_addr +
+ 						mpa5_boot_remap_addr[1]));
+diff --git a/arch/arm/mach-msm/pm2.c b/arch/arm/mach-msm/pm2.c
+index 946697f..fc4107e 100644
+--- a/arch/arm/mach-msm/pm2.c
++++ b/arch/arm/mach-msm/pm2.c
+@@ -562,7 +562,7 @@ static void msm_pm_config_hw_after_power_up(void)
+ 		__raw_writel(0, APPS_PWRDOWN);
+ 		mb();
+ 		msm_spm_reinit();
+-	} else if (cpu_is_msm8625()) {
++	} else if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		__raw_writel(0, APPS_PWRDOWN);
+ 		mb();
+ 
+@@ -881,7 +881,7 @@ static int msm_pm_power_collapse
+ 
+ 	memset(msm_pm_smem_data, 0, sizeof(*msm_pm_smem_data));
+ 
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		/* Program the SPM */
+ 		ret = msm_spm_set_low_power_mode(MSM_SPM_MODE_POWER_COLLAPSE,
+ 									false);
+@@ -970,7 +970,7 @@ static int msm_pm_power_collapse
+ #endif
+ 
+ #ifdef CONFIG_CACHE_L2X0
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		l2cc_suspend();
+ 	else
+ 		apps_power_collapse = 1;
+@@ -982,7 +982,7 @@ static int msm_pm_power_collapse
+ 	 * TBD: Currently recognise the MODEM early exit
+ 	 * path by reading the MPA5_GDFS_CNT_VAL register.
+ 	 */
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		int cpu;
+ 		/*
+ 		 * on system reset, default value of MPA5_GDFS_CNT_VAL
+@@ -996,7 +996,7 @@ static int msm_pm_power_collapse
+ 		val = __raw_readl(MSM_CFG_CTL_BASE + 0x38);
+ 
+ 		/* 8x25Q */
+-		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 3) {
++		if (cpu_is_msm8625q()) {
+ 			if (val != 0x000F0002) {
+ 				for_each_possible_cpu(cpu) {
+ 					if (!cpu)
+@@ -1032,7 +1032,7 @@ static int msm_pm_power_collapse
+ 	}
+ 
+ #ifdef CONFIG_CACHE_L2X0
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		l2cc_resume();
+ 	else
+ 		apps_power_collapse = 0;
+@@ -1154,7 +1154,7 @@ static int msm_pm_power_collapse
+ 
+ 	smd_sleep_exit();
+ 
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		ret = msm_spm_set_low_power_mode(MSM_SPM_MODE_CLOCK_GATING,
+ 									false);
+ 		WARN_ON(ret);
+@@ -1219,7 +1219,7 @@ power_collapse_restore_gpio_bail:
+ 		msm_cpr_ops->cpr_resume();
+ 
+ power_collapse_bail:
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		ret = msm_spm_set_low_power_mode(MSM_SPM_MODE_CLOCK_GATING,
+ 									false);
+ 		WARN_ON(ret);
+@@ -1257,14 +1257,14 @@ static int __ref msm_pm_power_collapse_standalone(bool from_idle)
+ #endif
+ 
+ #ifdef CONFIG_CACHE_L2X0
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		l2cc_suspend();
+ #endif
+ 
+ 	collapsed = msm_pm_collapse();
+ 
+ #ifdef CONFIG_CACHE_L2X0
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		l2cc_resume();
+ #endif
+ 
+@@ -1309,7 +1309,7 @@ static int msm_pm_swfi(bool ramp_acpu)
+ 			return -EIO;
+ 	}
+ 
+-	if (!cpu_is_msm8625())
++	if (!cpu_is_msm8625() && !cpu_is_msm8625q())
+ 		msm_pm_config_hw_before_swfi();
+ 
+ 	msm_arch_idle();
+@@ -1712,7 +1712,7 @@ static int __init msm_pm_init(void)
+ 		return ret;
+ 	}
+ 
+-	if (cpu_is_msm8625()) {
++	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 		target_type = TARGET_IS_8625;
+ 		clean_caches((unsigned long)&target_type, sizeof(target_type),
+ 				virt_to_phys(&target_type));
+@@ -1724,7 +1724,7 @@ static int __init msm_pm_init(void)
+ 		 * MPA5_GDFS_CNT_VAL[9:0] = Delay counter for
+ 		 * GDFS control.
+ 		 */
+-		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 3)
++		if (cpu_is_msm8625q())
+ 			val = 0x000F0002;
+ 		else
+ 			val = 0x00030002;
+diff --git a/arch/arm/mach-msm/timer.c b/arch/arm/mach-msm/timer.c
+index 8d31683..62e94db 100644
+--- a/arch/arm/mach-msm/timer.c
++++ b/arch/arm/mach-msm/timer.c
+@@ -1020,7 +1020,8 @@ static void __init msm_timer_init(void)
+ 
+ 	if (cpu_is_msm7x01() || cpu_is_msm7x25() || cpu_is_msm7x27() ||
+ 	    cpu_is_msm7x25a() || cpu_is_msm7x27a() || cpu_is_msm7x25aa() ||
+-	    cpu_is_msm7x27aa() || cpu_is_msm8625() || cpu_is_msm7x25ab()) {
++	    cpu_is_msm7x27aa() || cpu_is_msm8625() || cpu_is_msm7x25ab() ||
++	    cpu_is_msm8625q()) {
+ 		dgt->shift = MSM_DGT_SHIFT;
+ 		dgt->freq = 19200000 >> MSM_DGT_SHIFT;
+ 		dgt->clockevent.shift = 32 + MSM_DGT_SHIFT;
+@@ -1030,7 +1031,7 @@ static void __init msm_timer_init(void)
+ 		gpt->flags |= MSM_CLOCK_FLAGS_UNSTABLE_COUNT
+ 			   |  MSM_CLOCK_FLAGS_ODD_MATCH_WRITE
+ 			   |  MSM_CLOCK_FLAGS_DELAYED_WRITE_POST;
+-		if (cpu_is_msm8625()) {
++		if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+ 			dgt->irq = MSM8625_INT_DEBUG_TIMER_EXP;
+ 			gpt->irq = MSM8625_INT_GP_TIMER_EXP;
+ 			global_timer_offset =  MSM_TMR0_BASE - MSM_TMR_BASE;
+@@ -1124,7 +1125,8 @@ static void __init msm_timer_init(void)
+ 		ce->irq = clock->irq;
+ 		if (cpu_is_msm8x60() || cpu_is_msm8960() || cpu_is_apq8064() ||
+ 		    cpu_is_msm8930() || cpu_is_msm8930aa() ||
+-		    cpu_is_msm9615() || cpu_is_msm8625() || cpu_is_msm8627()) {
++		    cpu_is_msm9615() || cpu_is_msm8625() || cpu_is_msm8627() ||
++			cpu_is_msm8625q()) {
+ 			clock->percpu_evt = alloc_percpu(struct clock_event_device *);
+ 			if (!clock->percpu_evt) {
+ 				pr_err("msm_timer_init: memory allocation "
+diff --git a/drivers/gpu/msm/adreno.c b/drivers/gpu/msm/adreno.c
+index ba5a12d..f068871 100644
+--- a/drivers/gpu/msm/adreno.c
++++ b/drivers/gpu/msm/adreno.c
+@@ -614,7 +614,7 @@ a2xx_getchipid(struct kgsl_device *device)
+ 	else if (cpu_is_msm8960() &&
+ 			SOCINFO_VERSION_MAJOR(soc_platform_version) == 3)
+ 		patchid = 6;
+-	else if (cpu_is_msm8625() && minorid == 0)
++	else if ((cpu_is_msm8625() || cpu_is_msm8625q()) && minorid == 0)
+ 		minorid = 1;
+ 
+ 	chipid |= (minorid << 8) | patchid;
+-- 
+1.7.0.4
+

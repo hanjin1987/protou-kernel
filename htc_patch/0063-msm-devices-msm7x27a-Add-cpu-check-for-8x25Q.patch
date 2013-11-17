@@ -1,0 +1,60 @@
+From 681b30b52607d146ce38e46cf372745e50978389 Mon Sep 17 00:00:00 2001
+From: Rajesh Kemisetti <rajeshk@codeaurora.org>
+Date: Mon, 26 Nov 2012 15:48:29 +0530
+Subject: [PATCH 63/75] msm: devices-msm7x27a: Add cpu check for 8x25Q
+
+Adding CPU check for 8x25Q to increase number of GPU clock
+levels.
+
+Change-Id: I5fd42656461fd5812bc32419dbf6907425d30b4d
+Signed-off-by: Rajesh Kemisetti <rajeshk@codeaurora.org>
+(cherry picked from commit 07090a8cc6226fc8fa4cab00b81e5da2c48616f9)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index 9d80c15..c2ba8bb 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -948,11 +948,18 @@ void __init msm7x25a_kgsl_3d0_init(void)
+ 
+ void __init msm8x25_kgsl_3d0_init(void)
+ {
+-	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
+-		kgsl_3d0_pdata.idle_timeout = HZ/5;
+-		kgsl_3d0_pdata.strtstp_sleepwake = false;
++	kgsl_3d0_pdata.idle_timeout = HZ/5;
++	kgsl_3d0_pdata.strtstp_sleepwake = false;
+ 
+-		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2) {
++	if (cpu_is_msm8625()) {
++		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2)
++			/* 8x25 v2.0 & above supports a higher GPU frequency */
++			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 320000000;
++		else
++			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 300000000;
++
++		kgsl_3d0_pdata.pwrlevel[0].bus_freq = 200000000;
++	} else	if (cpu_is_msm8625q()) {
+ 			kgsl_3d0_pdata.num_levels = 4;
+ 
+ 			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 400000000;
+@@ -966,11 +973,8 @@ void __init msm8x25_kgsl_3d0_init(void)
+ 
+ 			kgsl_3d0_pdata.pwrlevel[3].gpu_freq = 133000000;
+ 			kgsl_3d0_pdata.pwrlevel[3].bus_freq = 0;
+-		} else {
+-			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 300000000;
+-			kgsl_3d0_pdata.pwrlevel[0].bus_freq = 200000000;
+-		}
+ 	}
++
+ }
+ 
+ static void __init msm_register_device(struct platform_device *pdev, void *data)
+-- 
+1.7.0.4
+

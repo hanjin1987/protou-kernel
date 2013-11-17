@@ -1,0 +1,38 @@
+From 3397a49d8dfc561550d1416abedad6834d0daa63 Mon Sep 17 00:00:00 2001
+From: Raju P.L.S.S.S.N <rplsssn@codeaurora.org>
+Date: Tue, 23 Oct 2012 18:16:04 +0530
+Subject: [PATCH 48/75] msm: camera: Fix for ZSL image curruption in 8x25
+
+wait for the free buffer to send it to VFE
+
+CRs-Fixed: 405712
+
+Signed-off-by: Raju P.L.S.S.S.N <rplsssn@codeaurora.org>
+(cherry picked from commit e0151ea48d04f544e538cca863d93317b6847508)
+
+Change-Id: I0e9490b8552e291dbe673370ed7125c6c0d8ffab
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/media/video/msm/msm_vfe7x27a_v4l2.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/msm/msm_vfe7x27a_v4l2.c b/drivers/media/video/msm/msm_vfe7x27a_v4l2.c
+index 077a768..79692c5 100644
+--- a/drivers/media/video/msm/msm_vfe7x27a_v4l2.c
++++ b/drivers/media/video/msm/msm_vfe7x27a_v4l2.c
+@@ -625,10 +625,8 @@ static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
+ 					msm_adsp_write(vfe_mod,
+ 							QDSP_CMDQUEUE,
+ 							cmd_data, len);
+-					if (!vfe2x_ctrl->zsl_mode) {
+-						kfree(data);
+-						return;
+-					}
++					kfree(data);
++					return;
+ 				}
+ 			} else { /* Live snapshot */
+ 				spin_unlock_irqrestore(
+-- 
+1.7.0.4
+

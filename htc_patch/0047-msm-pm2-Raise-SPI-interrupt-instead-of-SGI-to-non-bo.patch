@@ -1,0 +1,164 @@
+From dbff25299bce14aeca9aa0ecfc1a20c5d3cc57e0 Mon Sep 17 00:00:00 2001
+From: Murali Nalajala <mnalajal@codeaurora.org>
+Date: Mon, 19 Nov 2012 17:11:22 +0530
+Subject: [PATCH 47/75] msm: pm2: Raise SPI interrupt instead of SGI to non boot CPUs
+
+Once APPS comes out of PC and mpdecision want to bring the non-boot
+cpus to online, first CORE0 raises the SPI interrupt(MPCORE) to bring
+the cores(1/2/3) online. While bringing the cores online, CORE0 raises
+the SPI interrupt instead of SGI. Because once APPS does a PC QGIC
+looses its state and none of the non-boot cpus are not capable of
+receiving the SGI interrupt until cores configure the QGIC PPIs&SGIs
+by themselves.
+
+Change-Id: Ic7a8e0b6f62128f760b62674248af3cf5534865a
+Signed-off-by: Murali Nalajala <mnalajal@codeaurora.org>
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+(cherry picked from commit b438ee882ba8c5891be9a1b1ea62346927b62436)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/platsmp-8625.c |    8 +++---
+ arch/arm/mach-msm/pm.h           |    4 +-
+ arch/arm/mach-msm/pm2.c          |   40 +++++++++++++++++++++++++++++--------
+ 3 files changed, 37 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 3b31b9f..0e75cae 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
++/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+@@ -121,10 +121,10 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+ 	write_pen_release(-1);
+ 
+ 	/* clear the IPC pending SPI */
+-	if (power_collapsed) {
++	if (per_cpu(power_collapsed, cpu)) {
+ 		raise_clear_spi(cpu, false);
+ 		clear_pending_spi(cpu_data[cpu].ipc_irq);
+-		power_collapsed = 0;
++		per_cpu(power_collapsed, cpu) = 0;
+ 	}
+ 
+ 	/*
+@@ -216,7 +216,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * GDFS which needs to be brought out by raising an SPI.
+ 	 */
+ 
+-	if (power_collapsed) {
++	if (per_cpu(power_collapsed, cpu)) {
+ 		gic_configure_and_raise(cpu_data[cpu].ipc_irq, cpu);
+ 		raise_clear_spi(cpu, true);
+ 	} else {
+diff --git a/arch/arm/mach-msm/pm.h b/arch/arm/mach-msm/pm.h
+index 94e9b2f..074486d 100644
+--- a/arch/arm/mach-msm/pm.h
++++ b/arch/arm/mach-msm/pm.h
+@@ -1,7 +1,7 @@
+ /* arch/arm/mach-msm/pm.h
+  *
+  * Copyright (C) 2007 Google, Inc.
+- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
++ * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+  * Author: San Mehat <san@android.com>
+  *
+  * This software is licensed under the terms of the GNU General Public
+@@ -27,7 +27,7 @@ extern void msm_secondary_startup(void);
+ #define msm_secondary_startup NULL
+ #endif
+ 
+-extern int power_collapsed;
++DECLARE_PER_CPU(int,  power_collapsed);
+ 
+ struct msm_pm_irq_calls {
+ 	unsigned int (*irq_pending)(void);
+diff --git a/arch/arm/mach-msm/pm2.c b/arch/arm/mach-msm/pm2.c
+index b37a6ba..ddeba15 100644
+--- a/arch/arm/mach-msm/pm2.c
++++ b/arch/arm/mach-msm/pm2.c
+@@ -3,7 +3,7 @@
+  * MSM Power Management Routines
+  *
+  * Copyright (C) 2007 Google, Inc.
+- * Copyright (c) 2008-2012 Code Aurora Forum. All rights reserved.
++ * Copyright (c) 2008-2012 The Linux Foundation. All rights reserved.
+  *
+  * This software is licensed under the terms of the GNU General Public
+  * License version 2, as published by the Free Software Foundation, and
+@@ -75,8 +75,9 @@ enum {
+ 	MSM_PM_DEBUG_HOTPLUG = BIT(7),
+ };
+ 
++DEFINE_PER_CPU(int, power_collapsed);
++
+ static int msm_pm_debug_mask;
+-int power_collapsed;
+ module_param_named(
+ 	debug_mask, msm_pm_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP
+ );
+@@ -560,7 +561,7 @@ static void msm_pm_config_hw_after_power_up(void)
+ 		__raw_writel(0, APPS_PWRDOWN);
+ 		mb();
+ 
+-		if (power_collapsed) {
++		if (per_cpu(power_collapsed, 1)) {
+ 			/*
+ 			 * enable the SCU while coming out of power
+ 			 * collapse.
+@@ -977,6 +978,7 @@ static int msm_pm_power_collapse
+ 	 * path by reading the MPA5_GDFS_CNT_VAL register.
+ 	 */
+ 	if (cpu_is_msm8625()) {
++		int cpu;
+ 		/*
+ 		 * on system reset, default value of MPA5_GDFS_CNT_VAL
+ 		 * is = 0x0, later modem reprogram this value to
+@@ -990,14 +992,34 @@ static int msm_pm_power_collapse
+ 
+ 		/* 8x25Q */
+ 		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 3) {
+-			if (val != 0x000F0002)
+-				power_collapsed = 1;
+-			else
++			if (val != 0x000F0002) {
++				for_each_possible_cpu(cpu) {
++					if (!cpu)
++						continue;
++					per_cpu(power_collapsed, cpu) = 1;
++				}
++				/*
++				 * override DBGNOPOWERDN and program the GDFS
++				 * count val
++				 */
++				 __raw_writel(0x000F0002,
++						 (MSM_CFG_CTL_BASE + 0x38));
++			} else
+ 				modem_early_exit = 1;
+ 		} else {
+-			if (val != 0x00030002)
+-				power_collapsed = 1;
+-			else
++			if (val != 0x00030002) {
++				for_each_possible_cpu(cpu) {
++					if (!cpu)
++						continue;
++					per_cpu(power_collapsed, cpu) = 1;
++				}
++				/*
++				 * override DBGNOPOWERDN and program the GDFS
++				 * count val
++				 */
++				 __raw_writel(0x00030002,
++						 (MSM_CFG_CTL_BASE + 0x38));
++			} else
+ 				modem_early_exit = 1;
+ 		}
+ 	}
+-- 
+1.7.0.4
+

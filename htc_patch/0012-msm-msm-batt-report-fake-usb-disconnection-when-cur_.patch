@@ -1,0 +1,48 @@
+From fca2102f518b66c518a7159915d73e5ad465e5c2 Mon Sep 17 00:00:00 2001
+From: Krishna Vanka <kvanka@codeaurora.org>
+Date: Thu, 8 Nov 2012 22:33:51 +0530
+Subject: [PATCH 12/75] msm: msm-batt: report fake usb disconnection when cur_volt < batt_min
+
+Android doesn't initiate graceful shutdown if USB connected even
+if battery voltage is less than minimum operating voltage. To work
+around this behavior, let the battery module report fake usb
+disconnection when voltage is very low.
+
+CRs-Fixed: 410647
+Signed-off-by: Krishna Vanka <kvanka@codeaurora.org>
+(cherry picked from commit 3775173e3c8b95c9ae1e3e6e2445ae89afef5df8)
+
+Change-Id: Ia099dca16a1c2b6f1e6719ef5fabcc855f7f00d8
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/power/msm_battery.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/power/msm_battery.c b/drivers/power/msm_battery.c
+index 1d52e03..9e8a70f 100644
+--- a/drivers/power/msm_battery.c
++++ b/drivers/power/msm_battery.c
+@@ -636,6 +636,20 @@ static void msm_batt_update_psy_status(void)
+ 	msm_batt_info.battery_temp 	= battery_temp;
+ 
+ 	if (msm_batt_info.battery_voltage != battery_voltage) {
++
++		/* Android doesn't initiate shutdown even if voltage is less
++		 * than minimum batt level if USB is connected. Hence report
++		 * fake USB disconnection, in such scenario. Do this only when
++		 * the charger is present but battery is discharging faster.
++		 */
++		if (battery_voltage <= msm_batt_info.voltage_min_design &&
++			battery_voltage < msm_batt_info.battery_voltage &&
++			msm_batt_info.charger_status == CHARGER_STATUS_GOOD) {
++			pr_err("BATT: send fake USB unplug, start shutdown\n");
++			msm_batt_info.current_chg_source = 0;
++			supp = &msm_psy_batt;
++		}
++
+ 		msm_batt_info.battery_voltage  	= battery_voltage;
+ 		msm_batt_info.batt_capacity =
+ 			msm_batt_info.calculate_capacity(battery_voltage);
+-- 
+1.7.0.4
+

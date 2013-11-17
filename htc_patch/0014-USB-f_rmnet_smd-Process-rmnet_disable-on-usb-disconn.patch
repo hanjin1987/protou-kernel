@@ -1,0 +1,43 @@
+From 0c5a9cd2879d35f0d8c801e1670a5ae736e3bfa8 Mon Sep 17 00:00:00 2001
+From: Rajkumar Raghupathy <raghup@codeaurora.org>
+Date: Thu, 25 Oct 2012 15:35:35 +0530
+Subject: [PATCH 14/75] USB: f_rmnet_smd: Process rmnet_disable on usb disconnect, if smd_open fail
+
+If smd_open fails during USB connect and when "adb root" command is
+executed, USB gets disconnected, and since the online flag is 0,
+the disconnect process will not be carried out and the platform driver
+is not unregistered. On USB connect, as the the_pdrv_used flag is reset
+to 0, we endup in registering the platform_driver multiple times because
+of which crashes are observed.
+
+Hence, in rmnet_disable() function, don't check for the online flag, so
+that the disconnect work will get processed during USB disconnect and
+platform driver unregister is carried out.
+
+CRs-Fixed: 414886
+Signed-off-by: Rajkumar Raghupathy <raghup@codeaurora.org>
+(cherry picked from commit 28930dc7bebbec841fbff380082067d596f15b22)
+
+Change-Id: I5f616567120ed73c7f7c1f961b994ce6b2f00ffd
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/usb/gadget/f_rmnet_smd.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/gadget/f_rmnet_smd.c b/drivers/usb/gadget/f_rmnet_smd.c
+index 5e2c6ed..e8c1f2a 100644
+--- a/drivers/usb/gadget/f_rmnet_smd.c
++++ b/drivers/usb/gadget/f_rmnet_smd.c
+@@ -874,9 +874,6 @@ static void rmnet_smd_disable(struct usb_function *f)
+ 	struct rmnet_smd_dev *dev = container_of(f, struct rmnet_smd_dev,
+ 								function);
+ 
+-	if (!atomic_read(&dev->online))
+-		return;
+-
+ 	atomic_set(&dev->online, 0);
+ 
+ 	usb_ep_fifo_flush(dev->epnotify);
+-- 
+1.7.0.4
+

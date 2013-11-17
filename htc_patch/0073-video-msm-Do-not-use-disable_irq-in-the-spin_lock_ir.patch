@@ -1,0 +1,47 @@
+From bde10db2941505e8cf81a666d07ea31f53a73f28 Mon Sep 17 00:00:00 2001
+From: Prasad Sodagudi <psodagud@codeaurora.org>
+Date: Mon, 3 Dec 2012 00:21:10 +0530
+Subject: [PATCH 73/75] video: msm: Do not use disable_irq in the spin_lock_irqsave context
+
+mdp_histogram_disable() uses mdp_disable_irq call in
+spin_lock_irqsave context which is causing the mdp_isr() to
+wait indefinately to acquire the mdp_spin_lock. Replace
+the mdp_disable_irq call with mdp_disable_irq_nosync to
+avoid the device hang.
+
+Contex is shown below
+CORE-0				CORE-1
+				mdp_histogram_disable()
+				spin_lock_irqsave(&mdp_spin_lock, flag);
+handle_irq_event()
+handle_irq_event_percpu()
+mdp_isr()
+spin_lock_irqsave(&mdp_spin_lock, flag);
+(CORE-0 looping for mdp_spin_lock);
+				mdp_disable_irq()
+
+disable_irq()function does not return until
+any currently executing handler completes.
+
+Change-Id: I9e52d2cde81c36f60d783e392f2bfd27473adc01
+Signed-off-by: Prasad Sodagudi <psodagud@codeaurora.org>
+---
+ drivers/video/msm/mdp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/msm/mdp.c b/drivers/video/msm/mdp.c
+index 82b76f3..45f39e3 100644
+--- a/drivers/video/msm/mdp.c
++++ b/drivers/video/msm/mdp.c
+@@ -862,7 +862,7 @@ static int mdp_histogram_disable(struct mdp_hist_mgmt *mgmt)
+ 	outp32(MDP_INTR_CLEAR, mgmt->intr);
+ 	mdp_intr_mask &= ~mgmt->intr;
+ 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+-	mdp_disable_irq(mgmt->irq_term);
++	mdp_disable_irq_nosync(mgmt->irq_term);
+ 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+ 
+ 	if (mdp_rev >= MDP_REV_42)
+-- 
+1.7.0.4
+

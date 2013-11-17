@@ -1,0 +1,65 @@
+From 40f54816784e8335199868e107481456b37c1d2e Mon Sep 17 00:00:00 2001
+From: Shantanu Jain <shjain@codeaurora.org>
+Date: Wed, 10 Oct 2012 13:13:20 +0530
+Subject: [PATCH 72/75] msm: 7627a-io: Add keypad support for 8x25 SKUD
+
+Add matrix keypad support for 8x25 QRD since it has two
+drive lines and one sense line.
+
+Signed-off-by: Shantanu Jain <shjain@codeaurora.org>
+(cherry picked from commit 37a3b2e7eda3567079b9a9cf5743ec1343b0ba1b)
+
+Change-Id: I949a156464a4ce99f8069315d85b071cd1e37175
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-io.c |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-io.c b/arch/arm/mach-msm/board-msm7627a-io.c
+index e2a024c..fb7cea3 100644
+--- a/arch/arm/mach-msm/board-msm7627a-io.c
++++ b/arch/arm/mach-msm/board-msm7627a-io.c
+@@ -748,6 +748,15 @@ static const unsigned short keymap_sku3[] = {
+ 	[KP_INDEX_SKU3(1, 1)] = KEY_CAMERA,
+ };
+ 
++static unsigned int kp_row_gpios_skud[] = {31, 32};
++static unsigned int kp_col_gpios_skud[] = {37};
++
++static const unsigned short keymap_skud[] = {
++	[KP_INDEX_SKU3(0, 0)] = KEY_VOLUMEUP,
++	[KP_INDEX_SKU3(0, 1)] = KEY_VOLUMEDOWN,
++};
++
++
+ static struct gpio_event_matrix_info kp_matrix_info_sku3 = {
+ 	.info.func      = gpio_event_matrix_func,
+ 	.keymap         = keymap_sku3,
+@@ -910,13 +919,23 @@ void __init qrd7627a_add_io_devices(void)
+ #endif
+ 
+ 	/* keypad */
++
++	if (machine_is_qrd_skud_prime()) {
++		kp_matrix_info_sku3.keymap = keymap_skud;
++		kp_matrix_info_sku3.output_gpios = kp_row_gpios_skud;
++		kp_matrix_info_sku3.input_gpios = kp_col_gpios_skud;
++		kp_matrix_info_sku3.noutputs = ARRAY_SIZE(kp_row_gpios_skud);
++		kp_matrix_info_sku3.ninputs = ARRAY_SIZE(kp_col_gpios_skud);
++	}
++
+ 	if (machine_is_msm8625_evt())
+ 		kp_matrix_info_8625.keymap = keymap_8625_evt;
+ 
+ 	if (machine_is_msm7627a_evb() || machine_is_msm8625_evb() ||
+ 			machine_is_msm8625_evt())
+ 		platform_device_register(&kp_pdev_8625);
+-	else if (machine_is_msm7627a_qrd3() || machine_is_msm8625_qrd7())
++	else if (machine_is_msm7627a_qrd3() || machine_is_msm8625_qrd7()
++		|| machine_is_qrd_skud_prime())
+ 		platform_device_register(&kp_pdev_sku3);
+ 
+ 	/* leds */
+-- 
+1.7.0.4
+

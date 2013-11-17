@@ -1,0 +1,48 @@
+From f4537cf8dd50a78d78ab1664d623c9b6ecf3f240 Mon Sep 17 00:00:00 2001
+From: Gopal Goberu <ggober@codeaurora.org>
+Date: Thu, 22 Nov 2012 15:58:51 +0530
+Subject: [PATCH 43/75] msm: kgsl: Add cache flush for A20x
+
+Adding extra cache flush command to make sure that CP block
+gets event from RB all the time to avoid race conditions because of
+clock switches. this is to improve stability on 8x25 target.
+
+Change-Id: Ic7b56223eb0849e3ea955af3e08132431fc5318a
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/gpu/msm/adreno_ringbuffer.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 drivers/gpu/msm/adreno_ringbuffer.c
+
+diff --git a/drivers/gpu/msm/adreno_ringbuffer.c b/drivers/gpu/msm/adreno_ringbuffer.c
+old mode 100644
+new mode 100755
+index 1773c50..2b99263
+--- a/drivers/gpu/msm/adreno_ringbuffer.c
++++ b/drivers/gpu/msm/adreno_ringbuffer.c
+@@ -512,6 +512,9 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
+ 		total_sizedwords += 4; /* global timestamp for recovery*/
+ 	}
+ 
++	if (adreno_is_a20x(adreno_dev))
++		total_sizedwords += 2; /* CACHE_FLUSH */
++
+ 	ringcmds = adreno_ringbuffer_allocspace(rb, total_sizedwords);
+ 	/* GPU may hang during space allocation, if thats the case the current
+ 	 * context may have hung the GPU */
+@@ -620,6 +623,12 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
+ 			rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+ 	}
+ 
++	if (adreno_is_a20x(adreno_dev)) {
++		GSL_RB_WRITE(ringcmds, rcmd_gpu,
++			cp_type3_packet(CP_EVENT_WRITE, 1));
++		GSL_RB_WRITE(ringcmds, rcmd_gpu, CACHE_FLUSH);
++	}
++
+ 	if (!(flags & KGSL_CMD_FLAGS_NO_TS_CMP)) {
+ 		/* Conditional execution based on memory values */
+ 		GSL_RB_WRITE(ringcmds, rcmd_gpu,
+-- 
+1.7.0.4
+

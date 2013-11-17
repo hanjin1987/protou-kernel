@@ -1,0 +1,29 @@
+From be2922e967809b9fc5fdbfbd9eab3556c923b613 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Tue, 23 Oct 2012 17:08:31 +0530
+Subject: [PATCH 01/75] msm: camera: Disable gesture driver
+
+Disable gesture driver for SKUD prime device bringup.
+
+Change-Id: Ib433de74b81996a161ad31caeef7b69fb3c77125
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ drivers/media/video/msm/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/msm/Makefile b/drivers/media/video/msm/Makefile
+index b60f99f..498b0e1 100644
+--- a/drivers/media/video/msm/Makefile
++++ b/drivers/media/video/msm/Makefile
+@@ -13,7 +13,7 @@ ifeq ($(CONFIG_MSM_CAMERA_V4L2),y)
+   EXTRA_CFLAGS += -Idrivers/media/video/msm/actuators
+   obj-$(CONFIG_MSM_CAMERA) += msm_isp.o msm.o msm_mem.o msm_mctl.o msm_mctl_buf.o msm_mctl_pp.o
+   obj-$(CONFIG_MSM_CAMERA) += io/ eeprom/ sensors/ actuators/ csi/
+-  obj-$(CONFIG_MSM_CAMERA) += msm_gesture.o
++#  obj-$(CONFIG_MSM_CAMERA) += msm_gesture.o
+ else
+   obj-$(CONFIG_MSM_CAMERA) += msm_camera.o
+ endif
+-- 
+1.7.0.4
+

@@ -1,0 +1,33 @@
+From f998bb6ef93c4b5f2cf02fad11f2878c4e16a217 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Fri, 30 Nov 2012 15:53:00 +0530
+Subject: [PATCH 62/75] msm: board-qrd7x27a: Disable NCP6335d REARM after TSD
+
+By default REARM bit is set. So, ncp6335d rearms itself after thermal fault
+shutdown. This is not the desired behavior. So, disable REARM bit during
+initialization of buck.
+
+Change-Id: I3cdb1f35eabe0dfae9ce142d4fc3d1154e62ca34
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+(cherry picked from commit 76451744dab6547920041f45a98d7a9fdab9a340)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-qrd7627a.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index 2ad8b27..aeb2097 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -658,6 +658,7 @@ static struct ncp6335d_platform_data ncp6335d_pdata = {
+ 	.init_data = &ncp6335d_init_data,
+ 	.default_vsel = NCP6335D_VSEL0,
+ 	.slew_rate_ns = 166,
++	.rearm_disable = 1,
+ };
+ 
+ static struct i2c_board_info i2c2_info[] __initdata = {
+-- 
+1.7.0.4
+

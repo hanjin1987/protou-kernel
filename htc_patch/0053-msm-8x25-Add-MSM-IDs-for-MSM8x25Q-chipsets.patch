@@ -1,0 +1,64 @@
+From 968b7bbfda18377e727d07b96947d3bb2ace6de9 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Fri, 23 Nov 2012 15:35:01 +0530
+Subject: [PATCH 53/75] msm: 8x25: Add MSM IDs for MSM8x25Q chipsets.
+
+SocInfo is added for the new MSM-IDs of MSM8625Q chipsets.
+
+Change-Id: I626e85a5d0b294bfc2dc8069ab5f3637943ea162
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ arch/arm/mach-msm/include/mach/socinfo.h |   15 ++++++++++++++-
+ arch/arm/mach-msm/socinfo.c              |    5 +++++
+ 2 files changed, 19 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/include/mach/socinfo.h b/arch/arm/mach-msm/include/mach/socinfo.h
+index 7cd6086..399f7c8 100644
+--- a/arch/arm/mach-msm/include/mach/socinfo.h
++++ b/arch/arm/mach-msm/include/mach/socinfo.h
+@@ -80,7 +80,8 @@ enum msm_cpu {
+ 	MSM_CPU_8974,
+ 	MSM_CPU_8627,
+ 	MSM_CPU_8625,
+-	MSM_CPU_9625
++	MSM_CPU_9625,
++	MSM_CPU_8625Q,
+ };
+ 
+ enum pmic_model {
+@@ -347,4 +348,16 @@ static inline int cpu_is_msm8625(void)
+ #endif
+ }
+ 
++static inline int cpu_is_msm8625q(void)
++{
++#ifdef CONFIG_ARCH_MSM8625
++	enum msm_cpu cpu = socinfo_get_msm_cpu();
++
++	BUG_ON(cpu == MSM_CPU_UNKNOWN);
++	return cpu == MSM_CPU_8625Q;
++#else
++	return 0;
++#endif
++}
++
+ #endif
+diff --git a/arch/arm/mach-msm/socinfo.c b/arch/arm/mach-msm/socinfo.c
+index 9439c4b..901bdb8 100644
+--- a/arch/arm/mach-msm/socinfo.c
++++ b/arch/arm/mach-msm/socinfo.c
+@@ -284,6 +284,11 @@ static enum msm_cpu cpu_of_id[] = {
+ 	/* Uninitialized IDs are not known to run Linux.
+ 	   MSM_CPU_UNKNOWN is set to 0 to ensure these IDs are
+ 	   considered as unknown CPU. */
++
++       /* 8625Q IDs */
++       [168] = MSM_CPU_8625Q,
++       [169] = MSM_CPU_8625Q,
++       [170] = MSM_CPU_8625Q,
+ };
+ 
+ static enum msm_cpu cur_cpu;
+-- 
+1.7.0.4
+

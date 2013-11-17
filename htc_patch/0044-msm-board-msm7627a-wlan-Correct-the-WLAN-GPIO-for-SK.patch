@@ -1,0 +1,31 @@
+From a6da715b09e375497d391f2f0a64aff12d43ebe3 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Fri, 23 Nov 2012 12:27:24 +0530
+Subject: [PATCH 44/75] msm: board-msm7627a-wlan: Correct the WLAN GPIO for SKUD-Prime device
+
+Two WLAN GPIOs are being configured for SKUD-Prime device.
+Correct the GPIO initialisation for the wifi to work.
+
+Change-Id: Ia8b6f86e17f2ffd2edd9ac4b8de0d73255de604e
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-wlan.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-wlan.c b/arch/arm/mach-msm/board-msm7627a-wlan.c
+index 76b5eff..f76512d 100644
+--- a/arch/arm/mach-msm/board-msm7627a-wlan.c
++++ b/arch/arm/mach-msm/board-msm7627a-wlan.c
+@@ -53,8 +53,7 @@ static void gpio_wlan_config(void)
+ 					|| machine_is_msm8625_evb()
+ 					|| machine_is_msm8625_evt()
+ 					|| machine_is_msm7627a_qrd3()
+-					|| machine_is_msm8625_qrd7()
+-					|| machine_is_qrd_skud_prime())
++					|| machine_is_msm8625_qrd7())
+ 		gpio_wlan_sys_rest_en = 124;
+ 	else if (machine_is_qrd_skud_prime())
+ 		gpio_wlan_sys_rest_en = 38;
+-- 
+1.7.0.4
+

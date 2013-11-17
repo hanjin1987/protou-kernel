@@ -1,0 +1,63 @@
+From dfadb6865911e37a724c5143599446297bda8c92 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Thu, 20 Sep 2012 16:37:01 +0530
+Subject: [PATCH 25/75] msm: platsmp-8625: Add support for Quad Core 8625Q
+
+Add 8625Q specific code to support quad-core environment.
+
+Change-Id: I6517c1699539cfa9cc8845b87d44ef91322e4115
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+---
+ arch/arm/mach-msm/include/mach/irqs-8625.h |    2 ++
+ arch/arm/mach-msm/platsmp-8625.c           |   15 ++++++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-msm/include/mach/irqs-8625.h b/arch/arm/mach-msm/include/mach/irqs-8625.h
+index 748b1df..2a61118 100644
+--- a/arch/arm/mach-msm/include/mach/irqs-8625.h
++++ b/arch/arm/mach-msm/include/mach/irqs-8625.h
+@@ -91,6 +91,8 @@
+ #define MSM8625_INT_CPR_IRQ0		(GIC_SPI_START + 32 + 25)
+ #define MSM8625_INT_CPR_IRQ1		(GIC_SPI_START + 32 + 26)
+ #define MSM8625_INT_CPR_IRQ2		(GIC_SPI_START + 32 + 27)
++#define MSM8625_INT_ACSR_MP_CORE_IPC2	(GIC_SPI_START + 32 + 28)
++#define MSM8625_INT_ACSR_MP_CORE_IPC3	(GIC_SPI_START + 32 + 29)
+ 
+ #define MSM8625_INT_ADSP_A11_SMSM	MSM8625_INT_ADSP_A11
+ #endif
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 50299db..e8f8c59 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -300,7 +300,7 @@ static void __init msm8625_boot_vector_init(uint32_t *boot_vector,
+ 
+ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+ {
+-	int i, cpu;
++	int i, cpu, value;
+ 	void __iomem *cpu_ptr;
+ 
+ 	/*
+@@ -333,6 +333,19 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+ 					MSM8625_INT_ACSR_MP_CORE_IPC1);
+ 			enable_boot_remapper(BIT(26), 0x30);
+ 			break;
++		case 2:
++			remapper_address((MSM8625_CPU_PHYS >> 16), 0x4C);
++			per_cpu_data(cpu, 0x8, 0x50,
++					MSM8625_INT_ACSR_MP_CORE_IPC2);
++			enable_boot_remapper(BIT(25), 0x48);
++			break;
++		case 3:
++			value = __raw_readl(MSM_CFG_CTL_BASE + 0x4C);
++			remapper_address(value | MSM8625_CPU_PHYS, 0x4C);
++			per_cpu_data(cpu, 0xC, 0x50,
++					MSM8625_INT_ACSR_MP_CORE_IPC3);
++			enable_boot_remapper(BIT(26), 0x48);
++			break;
+ 		}
+ 
+ 	}
+-- 
+1.7.0.4
+

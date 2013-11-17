@@ -1,0 +1,319 @@
+From 6c56a1a4e70575272087a09e2f11c9b705cc2cef Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Fri, 12 Oct 2012 15:14:23 +0530
+Subject: [PATCH 02/75] msm: msm8625: Add support for SKUD prime device
+
+Adds support for MSM8625 based SKUD prime device.
+
+Change-Id: I81b59b09b167313f948b2aa588a43f0ae6ab49b5
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ arch/arm/mach-msm/Kconfig                  |   12 ++++++++++++
+ arch/arm/mach-msm/Makefile                 |    1 +
+ arch/arm/mach-msm/board-msm7627a-bt.c      |    5 ++++-
+ arch/arm/mach-msm/board-msm7627a-camera.c  |   26 +++++++++++++++++---------
+ arch/arm/mach-msm/board-msm7627a-display.c |   18 ++++++++++++------
+ arch/arm/mach-msm/board-msm7627a-storage.c |    4 ++--
+ arch/arm/mach-msm/board-msm7627a-wlan.c    |    9 ++++++---
+ arch/arm/mach-msm/board-qrd7627a.c         |   13 ++++++++++++-
+ arch/arm/tools/mach-types                  |    1 +
+ 9 files changed, 67 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/mach-msm/Kconfig b/arch/arm/mach-msm/Kconfig
+index f5d4266..3e6abd9 100644
+--- a/arch/arm/mach-msm/Kconfig
++++ b/arch/arm/mach-msm/Kconfig
+@@ -576,6 +576,18 @@ config MACH_MSM8625_EVT
+ 	help
+ 	  Support for the Qualcomm MSM8625 Reference Design.
+ 
++config MACH_QRD_SKUD_PRIME
++	depends on ARCH_MSM8625
++	depends on !MSM_STACKED_MEMORY
++	default y
++	bool "MSM8625 SKUD PRIME"
++	help
++	  Support for the Qualcomm MSM8625 SKUD prime Reference Design.
++	  Add support for a SKUD prime reference design based on MSM8x25
++	  chipset. This device is much closer to a phone than regular form
++	  factor devices, with new touch, display panel and other hardware
++	  configurations.
++
+ config MACH_MSM7X30_SURF
+        depends on ARCH_MSM7X30
+        depends on !MSM_STACKED_MEMORY
+diff --git a/arch/arm/mach-msm/Makefile b/arch/arm/mach-msm/Makefile
+index d88368c..390e879 100644
+--- a/arch/arm/mach-msm/Makefile
++++ b/arch/arm/mach-msm/Makefile
+@@ -258,6 +258,7 @@ obj-$(CONFIG_MACH_MSM8625_RUMI3) += board-msm7x27a.o
+ obj-$(CONFIG_MACH_MSM8625_SURF) +=  board-msm7x27a.o board-7627a-all.o
+ obj-$(CONFIG_MACH_MSM8625_EVB) +=  board-qrd7627a.o board-7627a-all.o
+ obj-$(CONFIG_MACH_MSM8625_QRD7) +=  board-qrd7627a.o board-7627a-all.o
++obj-$(CONFIG_MACH_QRD_SKUD_PRIME) +=  board-qrd7627a.o board-7627a-all.o
+ obj-$(CONFIG_MACH_MSM8625_FFA) += board-msm7x27a.o board-7627a-all.o
+ obj-$(CONFIG_MACH_MSM8625_EVT) += board-msm7x27a.o board-7627a-all.o
+ obj-$(CONFIG_ARCH_MSM7X30) += board-msm7x30.o devices-msm7x30.o memory_topology.o
+diff --git a/arch/arm/mach-msm/board-msm7627a-bt.c b/arch/arm/mach-msm/board-msm7627a-bt.c
+index e4edf9b..bcc9645 100644
+--- a/arch/arm/mach-msm/board-msm7627a-bt.c
++++ b/arch/arm/mach-msm/board-msm7627a-bt.c
+@@ -103,7 +103,8 @@ static void gpio_bt_config(void)
+ 	if (machine_is_msm7627a_qrd1())
+ 		gpio_bt_sys_rest_en = 114;
+ 	if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-				|| machine_is_msm8625_evt())
++				|| machine_is_msm8625_evt()
++				|| machine_is_qrd_skud_prime())
+ 		gpio_bt_sys_rest_en = 16;
+ 	if (machine_is_msm8625_qrd7())
+ 		gpio_bt_sys_rest_en = 88;
+@@ -975,6 +976,8 @@ void __init msm7627a_bt_power_init(void)
+ 	int i, rc = 0;
+ 	struct device *dev;
+ 
++	if (machine_is_qrd_skud_prime())
++		return;
+ 
+ 	gpio_bt_config();
+ 
+diff --git a/arch/arm/mach-msm/board-msm7627a-camera.c b/arch/arm/mach-msm/board-msm7627a-camera.c
+index f78949d..1567981 100644
+--- a/arch/arm/mach-msm/board-msm7627a-camera.c
++++ b/arch/arm/mach-msm/board-msm7627a-camera.c
+@@ -395,8 +395,11 @@ static void __init msm7x27a_init_cam(void)
+ 		sensor_board_info_ov8825.num_vreg = 0;
+ 
+ 	}
+-	if (machine_is_msm8625_evb()
+-			|| machine_is_msm8625_evt()) {
++	if (machine_is_msm8625_evb() || machine_is_msm7627a_evb()
++				||  machine_is_msm8625_evt()
++				|| machine_is_msm7627a_qrd3()
++				|| machine_is_msm8625_qrd7()
++				|| machine_is_qrd_skud_prime()) {
+ 		sensor_board_info_ov7692.cam_vreg =
+ 			ov7692_gpio_vreg;
+ 		sensor_board_info_ov7692.num_vreg =
+@@ -413,7 +416,8 @@ static void __init msm7x27a_init_cam(void)
+ 	platform_device_register(&msm_camera_server);
+ 	if (machine_is_msm8625_surf() || machine_is_msm8625_evb()
+ 			|| machine_is_msm8625_evt()
+-			|| machine_is_msm8625_qrd7()) {
++			|| machine_is_msm8625_qrd7()
++			|| machine_is_qrd_skud_prime()) {
+ 		platform_device_register(&msm8625_device_csic0);
+ 		platform_device_register(&msm8625_device_csic1);
+ 	} else {
+@@ -422,7 +426,8 @@ static void __init msm7x27a_init_cam(void)
+ 	}
+ 	if (machine_is_msm8625_evb()
+ 			|| machine_is_msm8625_evt()
+-			|| machine_is_msm8625_qrd7())
++			|| machine_is_msm8625_qrd7()
++			|| machine_is_qrd_skud_prime())
+ 		*(int *) msm7x27a_device_clkctl.dev.platform_data = 1;
+ 	platform_device_register(&msm7x27a_device_clkctl);
+ 	platform_device_register(&msm7x27a_device_vfe);
+@@ -1188,7 +1193,6 @@ void __init msm7627a_camera_init(void)
+ #ifndef CONFIG_MSM_CAMERA_V4L2
+ 	int rc;
+ #endif
+-
+ 	pr_debug("msm7627a_camera_init Entered\n");
+ 
+ 	if (machine_is_msm7627a_qrd3() || machine_is_msm8625_qrd7()) {
+@@ -1207,7 +1211,8 @@ void __init msm7627a_camera_init(void)
+ 	if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+ 			|| machine_is_msm8625_evt()
+ 			|| machine_is_msm7627a_qrd3()
+-			|| machine_is_msm8625_qrd7()) {
++			|| machine_is_msm8625_qrd7()
++			|| machine_is_qrd_skud_prime()) {
+ #ifndef CONFIG_MSM_CAMERA_V4L2
+ 		lcd_camera_power_init();
+ #endif
+@@ -1223,7 +1228,8 @@ void __init msm7627a_camera_init(void)
+ 			|| machine_is_msm8625_evb()
+ 			|| machine_is_msm8625_evt()
+ 			|| machine_is_msm7627a_qrd3()
+-			|| machine_is_msm8625_qrd7()) {
++			|| machine_is_msm8625_qrd7()
++			|| machine_is_qrd_skud_prime()) {
+ 		platform_add_devices(camera_devices_evb,
+ 				ARRAY_SIZE(camera_devices_evb));
+ 	} else if (machine_is_msm7627a_qrd3())
+@@ -1236,7 +1242,8 @@ void __init msm7627a_camera_init(void)
+ 					|| !machine_is_msm8625_evb()
+ 					|| !machine_is_msm8625_evt()
+ 					|| !machine_is_msm7627a_qrd3()
+-					|| !machine_is_msm8625_qrd7())
++					|| !machine_is_msm8625_qrd7()
++					|| !machine_is_qrd_skud_prime())
+ 		register_i2c_devices();
+ #ifndef CONFIG_MSM_CAMERA_V4L2
+ 	rc = regulator_bulk_get(NULL, ARRAY_SIZE(regs_camera), regs_camera);
+@@ -1266,7 +1273,8 @@ void __init msm7627a_camera_init(void)
+ 			|| machine_is_msm8625_evb()
+ 			|| machine_is_msm8625_evt()
+ 			|| machine_is_msm7627a_qrd3()
+-			|| machine_is_msm8625_qrd7()) {
++			|| machine_is_msm8625_qrd7()
++			|| machine_is_qrd_skud_prime()) {
+ 		pr_debug("machine_is_msm7627a_evb i2c_register_board_info\n");
+ 		i2c_register_board_info(MSM_GSBI0_QUP_I2C_BUS_ID,
+ 				i2c_camera_devices_evb,
+diff --git a/arch/arm/mach-msm/board-msm7627a-display.c b/arch/arm/mach-msm/board-msm7627a-display.c
+index 4745b97..78a24fd 100644
+--- a/arch/arm/mach-msm/board-msm7627a-display.c
++++ b/arch/arm/mach-msm/board-msm7627a-display.c
+@@ -510,7 +510,8 @@ static int msm_fb_detect_panel(const char *name)
+ 		if (!strncmp(name, "lcdc_truly_hvga_ips3p2335_pt", 28))
+ 			ret = 0;
+ 	} else if (machine_is_msm7627a_evb() || machine_is_msm8625_evb() ||
+-			machine_is_msm8625_evt()) {
++			machine_is_msm8625_evt() ||
++			machine_is_qrd_skud_prime()) {
+ 		if (!strncmp(name, "mipi_cmd_nt35510_wvga", 21))
+ 			ret = 0;
+ 	}
+@@ -767,7 +768,8 @@ void __init msm_msm7627a_allocate_memory_regions(void)
+ 	if (machine_is_msm7625a_surf() || machine_is_msm7625a_ffa())
+ 		fb_size = MSM7x25A_MSM_FB_SIZE;
+ 	else if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-						|| machine_is_msm8625_evt())
++						|| machine_is_msm8625_evt()
++						|| machine_is_qrd_skud_prime())
+ 		fb_size = MSM8x25_MSM_FB_SIZE;
+ 	else
+ 		fb_size = MSM_FB_SIZE;
+@@ -988,7 +990,8 @@ static int msm_fb_dsi_client_reset(void)
+ 	if (machine_is_msm7627a_qrd1())
+ 		rc = msm_fb_dsi_client_qrd1_reset();
+ 	else if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-						|| machine_is_msm8625_evt())
++						|| machine_is_msm8625_evt()
++						|| machine_is_qrd_skud_prime())
+ 		rc = msm_fb_dsi_client_qrd3_reset();
+ 	else
+ 		rc = msm_fb_dsi_client_msm_reset();
+@@ -1297,7 +1300,8 @@ static int mipi_dsi_panel_power(int on)
+ 	if (machine_is_msm7627a_qrd1())
+ 		rc = mipi_dsi_panel_qrd1_power(on);
+ 	else if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-						|| machine_is_msm8625_evt())
++						|| machine_is_msm8625_evt()
++						|| machine_is_qrd_skud_prime())
+ 		rc = mipi_dsi_panel_qrd3_power(on);
+ 	else
+ 		rc = mipi_dsi_panel_msm_power(on);
+@@ -1361,7 +1365,8 @@ void __init msm_fb_add_devices(void)
+ 		platform_add_devices(qrd_fb_devices,
+ 				ARRAY_SIZE(qrd_fb_devices));
+ 	else if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-						|| machine_is_msm8625_evt()) {
++					|| machine_is_msm8625_evt()
++					|| machine_is_qrd_skud_prime()) {
+ 		mipi_NT35510_pdata.bl_lock = 1;
+ 		mipi_NT35516_pdata.bl_lock = 1;
+ 		if (disable_splash)
+@@ -1390,7 +1395,8 @@ void __init msm_fb_add_devices(void)
+ 	msm_fb_register_device("mipi_dsi", &mipi_dsi_pdata);
+ #endif
+ 	if (machine_is_msm7627a_evb() || machine_is_msm8625_evb()
+-					|| machine_is_msm8625_evt()) {
++					|| machine_is_msm8625_evt()
++					|| machine_is_qrd_skud_prime()) {
+ 		gpio_reg_2p85v = regulator_get(&mipi_dsi_device.dev,
+ 								"lcd_vdd");
+ 		if (IS_ERR(gpio_reg_2p85v))
+diff --git a/arch/arm/mach-msm/board-msm7627a-storage.c b/arch/arm/mach-msm/board-msm7627a-storage.c
+index 49ff393..07ff389 100644
+--- a/arch/arm/mach-msm/board-msm7627a-storage.c
++++ b/arch/arm/mach-msm/board-msm7627a-storage.c
+@@ -378,9 +378,9 @@ void __init msm7627a_init_mmc(void)
+ 	if (mmc_regulator_init(1, "mmc", 2850000))
+ 		return;
+ 	/* 8x25 EVT do not use hw detector */
+-	if (!(machine_is_msm8625_evt()))
++	if (!((machine_is_msm8625_evt() || machine_is_qrd_skud_prime())))
+ 		sdc1_plat_data.status_irq = MSM_GPIO_TO_INT(gpio_sdc1_hw_det);
+-	if (machine_is_msm8625_evt())
++	if (machine_is_msm8625_evt() || machine_is_qrd_skud_prime())
+ 		sdc1_plat_data.status = NULL;
+ 
+ 	msm_add_sdcc(1, &sdc1_plat_data);
+diff --git a/arch/arm/mach-msm/board-msm7627a-wlan.c b/arch/arm/mach-msm/board-msm7627a-wlan.c
+index 75395b7..ab29fc5 100644
+--- a/arch/arm/mach-msm/board-msm7627a-wlan.c
++++ b/arch/arm/mach-msm/board-msm7627a-wlan.c
+@@ -53,7 +53,8 @@ static void gpio_wlan_config(void)
+ 					|| machine_is_msm8625_evb()
+ 					|| machine_is_msm8625_evt()
+ 					|| machine_is_msm7627a_qrd3()
+-					|| machine_is_msm8625_qrd7())
++					|| machine_is_msm8625_qrd7()
++					|| machine_is_qrd_skud_prime())
+ 		gpio_wlan_sys_rest_en = 124;
+ }
+ 
+@@ -243,7 +244,8 @@ static unsigned int msm_AR600X_setup_power(bool on)
+ 					|| machine_is_msm8625_evb()
+ 					|| machine_is_msm8625_evt()
+ 					|| machine_is_msm7627a_qrd3()
+-					|| machine_is_msm8625_qrd7()) {
++					|| machine_is_msm8625_qrd7()
++					|| machine_is_qrd_skud_prime()) {
+ 		rc = gpio_tlmm_config(GPIO_CFG(gpio_wlan_sys_rest_en, 0,
+ 					GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
+ 					GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+@@ -332,7 +334,8 @@ static unsigned int msm_AR600X_shutdown_power(bool on)
+ 					|| machine_is_msm8625_evb()
+ 					|| machine_is_msm8625_evt()
+ 					|| machine_is_msm7627a_qrd3()
+-					|| machine_is_msm8625_qrd7()) {
++					|| machine_is_msm8625_qrd7()
++					|| machine_is_qrd_skud_prime()) {
+ 		rc = gpio_tlmm_config(GPIO_CFG(gpio_wlan_sys_rest_en, 0,
+ 					GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
+ 					GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index b51ef23..c1a8734 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -897,7 +897,8 @@ static void __init msm_add_footswitch_devices(void)
+ static void __init add_platform_devices(void)
+ {
+ 	if (machine_is_msm8625_evb() || machine_is_msm8625_qrd7()
+-				|| machine_is_msm8625_evt()) {
++				|| machine_is_msm8625_evt()
++				|| machine_is_qrd_skud_prime()) {
+ 		platform_add_devices(msm8625_evb_devices,
+ 				ARRAY_SIZE(msm8625_evb_devices));
+ 		platform_add_devices(qrd3_devices,
+@@ -1066,3 +1067,13 @@ MACHINE_START(MSM8625_EVT, "QRD MSM8625 EVT")
+ 	.init_early	= qrd7627a_init_early,
+ 	.handle_irq	= gic_handle_irq,
+ MACHINE_END
++MACHINE_START(QRD_SKUD_PRIME, "QRD MSM8625 SKUD PRIME")
++	.atag_offset	= 0x100,
++	.map_io		= msm8625_map_io,
++	.reserve	= msm8625_reserve,
++	.init_irq	= msm8625_init_irq,
++	.init_machine	= msm_qrd_init,
++	.timer		= &msm_timer,
++	.init_early	= qrd7627a_init_early,
++	.handle_irq	= gic_handle_irq,
++MACHINE_END
+diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+index d283705..2b31f47 100644
+--- a/arch/arm/tools/mach-types
++++ b/arch/arm/tools/mach-types
+@@ -1196,3 +1196,4 @@ msm8625_evb		MACH_MSM8625_EVB	MSM8625_EVB		4042
+ msm8625_qrd7		MACH_MSM8625_QRD7	MSM8625_QRD7		4095
+ msm8625_ffa		MACH_MSM8625_FFA	MSM8625_FFA		4166
+ msm8625_evt		MACH_MSM8625_EVT	MSM8625_EVT		4193
++qrd_skud_prime		MACH_QRD_SKUD_PRIME	QRD_SKUD_PRIME		4393
+-- 
+1.7.0.4
+

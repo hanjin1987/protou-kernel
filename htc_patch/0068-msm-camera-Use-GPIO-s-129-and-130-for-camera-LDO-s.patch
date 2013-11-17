@@ -1,0 +1,68 @@
+From 4b5e9cb15176d5de30b04644874b350cf8c1e6c5 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Sat, 1 Dec 2012 17:03:30 +0530
+Subject: [PATCH 68/75] msm: camera: Use GPIO's 129 and 130 for camera LDO's
+
+BT uses GPIO39 for MSM8625Q SKUD which is currently
+being used for Camera LDO. Update the camera LDO GPIO's
+to 129 and 130.
+
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+(cherry picked from commit 8661b539e13dbeeac548541e0d3830164494548c)
+
+Change-Id: I6398f9909dd7eb3ba28de2f59a381e379475d8f8
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-camera.c |    4 ++--
+ arch/arm/mach-msm/board-qrd7627a.c        |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-camera.c b/arch/arm/mach-msm/board-msm7627a-camera.c
+index db4a3dd..099d630 100644
+--- a/arch/arm/mach-msm/board-msm7627a-camera.c
++++ b/arch/arm/mach-msm/board-msm7627a-camera.c
+@@ -1093,8 +1093,8 @@ static void __init register_i2c_devices(void)
+ }
+ 
+ #ifndef CONFIG_MSM_CAMERA_V4L2
+-#define LCD_CAMERA_LDO_2V8 35 /* SKU1&SKU3 2.8V LDO */
+-#define SKU3_LCD_CAMERA_LDO_1V8 40 /* SKU3 1.8V LDO */
++#define LCD_CAMERA_LDO_2V8 129 /* SKU1&SKU3 2.8V LDO */
++#define SKU3_LCD_CAMERA_LDO_1V8 130 /* SKU3 1.8V LDO */
+ #define SKU7_LCD_CAMERA_LDO_1V8 58 /* SKU7 1.8V LDO */
+ 
+ static int lcd_camera_ldo_1v8 = SKU3_LCD_CAMERA_LDO_1V8;
+diff --git a/arch/arm/mach-msm/board-qrd7627a.c b/arch/arm/mach-msm/board-qrd7627a.c
+index 9b63b6a..814a7f7 100644
+--- a/arch/arm/mach-msm/board-qrd7627a.c
++++ b/arch/arm/mach-msm/board-qrd7627a.c
+@@ -605,14 +605,14 @@ static struct regulator_consumer_supply vreg_consumers_EXT_1P8V[] = {
+ 
+ /* GPIO regulator constraints */
+ static struct gpio_regulator_platform_data msm_gpio_regulator_pdata[] = {
+-	GPIO_VREG_INIT(EXT_2P85V, "ext_2p85v", "ext_2p85v_en", 35, 0),
+-	GPIO_VREG_INIT(EXT_1P8V, "ext_1p8v", "ext_1p8v_en", 40, 0),
++	GPIO_VREG_INIT(EXT_2P85V, "ext_2p85v", "ext_2p85v_en", 129, 0),
++	GPIO_VREG_INIT(EXT_1P8V, "ext_1p8v", "ext_1p8v_en", 130, 0),
+ };
+ 
+ /* GPIO regulator */
+ static struct platform_device qrd_vreg_gpio_ext_2p85v __devinitdata = {
+ 	.name	= GPIO_REGULATOR_DEV_NAME,
+-	.id	= 35,
++	.id	= 129,
+ 	.dev	= {
+ 		.platform_data =
+ 			&msm_gpio_regulator_pdata[GPIO_VREG_ID_EXT_2P85V],
+@@ -621,7 +621,7 @@ static struct platform_device qrd_vreg_gpio_ext_2p85v __devinitdata = {
+ 
+ static struct platform_device qrd_vreg_gpio_ext_1p8v __devinitdata = {
+ 	.name	= GPIO_REGULATOR_DEV_NAME,
+-	.id	= 40,
++	.id	= 130,
+ 	.dev	= {
+ 		.platform_data =
+ 			&msm_gpio_regulator_pdata[GPIO_VREG_ID_EXT_1P8V],
+-- 
+1.7.0.4
+

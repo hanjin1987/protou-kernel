@@ -1,0 +1,33 @@
+From d430fcb607b9420ea34b62c0b1ae898664c16695 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Fri, 9 Nov 2012 14:06:42 +0530
+Subject: [PATCH 21/75] msm: board-msm7627a-wlan: Fix the wlan gpio used for skud-prime
+
+wlan gpio used in skud-prime platform is updated.
+This enables wifi on skud-prime.
+
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+(cherry picked from commit 1103c4e2272fce9e30ec4121fa72c82daea9505d)
+
+Change-Id: I1e218cee2ef88e8d81d2985adfc8523783768fae
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-wlan.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-wlan.c b/arch/arm/mach-msm/board-msm7627a-wlan.c
+index 75395b7..6a12353 100644
+--- a/arch/arm/mach-msm/board-msm7627a-wlan.c
++++ b/arch/arm/mach-msm/board-msm7627a-wlan.c
+@@ -55,6 +55,8 @@ static void gpio_wlan_config(void)
+ 					|| machine_is_msm7627a_qrd3()
+ 					|| machine_is_msm8625_qrd7())
+ 		gpio_wlan_sys_rest_en = 124;
++	else if (machine_is_qrd_skud_prime())
++		gpio_wlan_sys_rest_en = 38;
+ }
+ 
+ static unsigned int qrf6285_init_regs(void)
+-- 
+1.7.0.4
+

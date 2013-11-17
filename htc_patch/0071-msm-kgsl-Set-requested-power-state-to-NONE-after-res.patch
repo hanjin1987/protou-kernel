@@ -1,0 +1,32 @@
+From 3036435584d4b8117ca64c67287de24be57f659a Mon Sep 17 00:00:00 2001
+From: Vinay Roy <vroy@codeaurora.org>
+Date: Sun, 25 Nov 2012 00:48:38 +0530
+Subject: [PATCH 71/75] msm: kgsl: Set requested power state to NONE after resume
+
+When GPU resumes from suspend requested state is not cleared to NONE.
+Due to this idle reporting is not done and GPU stays at MAX freq. As
+a fix if the current power state is already ACTIVE and request is
+made for active power state then clear the requested state immediately.
+
+CRs-fixed: 424682
+Change-Id: I7f0d7fa819308f166cbbbf30b2c20aee73644cfb
+Signed-off-by: Vinay Roy <vroy@codeaurora.org>
+---
+ drivers/gpu/msm/kgsl_pwrctrl.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/msm/kgsl_pwrctrl.c b/drivers/gpu/msm/kgsl_pwrctrl.c
+index 2c976af..d113441 100644
+--- a/drivers/gpu/msm/kgsl_pwrctrl.c
++++ b/drivers/gpu/msm/kgsl_pwrctrl.c
+@@ -1235,6 +1235,7 @@ void kgsl_pwrctrl_wake(struct kgsl_device *device)
+ 			pm_qos_update_request(&device->pm_qos_req_dma,
+ 						GPU_SWFI_LATENCY);
+ 	case KGSL_STATE_ACTIVE:
++		kgsl_pwrctrl_request_state(device, KGSL_STATE_NONE);
+ 		break;
+ 	default:
+ 		KGSL_PWR_WARN(device, "unhandled state %s\n",
+-- 
+1.7.0.4
+

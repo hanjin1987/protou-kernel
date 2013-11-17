@@ -1,0 +1,50 @@
+From ecf990e6c8ec0bd069c0d4d4632b8cfea2c51259 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Thu, 20 Sep 2012 15:48:04 +0530
+Subject: [PATCH 20/75] msm: platsmp-8625: Add cold_boot_done as per_cpu variable
+
+cold_boot_done is declared as an ordinary variable, and useful for
+single secondary cpu, right now. It will not work in the scenarios
+where we have more than two cores in the system. Usage of per-cpu
+variable will make the code more generic for multi-core environment.
+
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+(cherry picked from commit b4733882c76ff94b65e6c5cbc13c76a2ef03a329)
+
+Change-Id: I1412b08ce02e55621ac55281d539d7bd574b563e
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/platsmp-8625.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 01db4a1..4981946 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -37,7 +37,7 @@
+  */
+ volatile int pen_release = -1;
+ 
+-static bool cold_boot_done;
++static DEFINE_PER_CPU(bool, cold_boot_done);
+ 
+ static uint32_t *msm8625_boot_vector;
+ static void __iomem *reset_core1_base;
+@@ -173,12 +173,12 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 
+ 	preset_lpj = loops_per_jiffy;
+ 
+-	if (cold_boot_done == false) {
++	if (per_cpu(cold_boot_done, cpu) == false) {
+ 		if (msm8625_release_secondary(cpu)) {
+ 			pr_err("Failed to release core %u\n", cpu);
+ 			return -ENODEV;
+ 		}
+-		cold_boot_done = true;
++		per_cpu(cold_boot_done, cpu) = true;
+ 	}
+ 
+ 	/*
+-- 
+1.7.0.4
+

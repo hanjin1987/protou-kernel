@@ -1,0 +1,45 @@
+From 4493958dcb04452e3347cd6b03383dd81a38f305 Mon Sep 17 00:00:00 2001
+From: Aparna Mallavarapu <aparnam@codeaurora.org>
+Date: Wed, 28 Nov 2012 11:20:50 +0530
+Subject: [PATCH 58/75] msm_fb: board: Set MIPI lane swap register in the board file
+
+Modify the MIPI Lane swap register to get display
+on EVBD and SKUD devices for 8625Q chipsets.
+Also disable continuous splash screen.
+
+Change-Id: I6f0367c4d6d2f0d1121bfb2102d7c2be7a55e26c
+Signed-off-by: Aparna Mallavarapu <aparnam@codeaurora.org>
+---
+ arch/arm/mach-msm/board-msm7627a-display.c    |    2 +-
+ drivers/video/msm/mipi_hx8389b_video_qhd_pt.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-msm/board-msm7627a-display.c b/arch/arm/mach-msm/board-msm7627a-display.c
+index 6f65c52..ced9ca8 100644
+--- a/arch/arm/mach-msm/board-msm7627a-display.c
++++ b/arch/arm/mach-msm/board-msm7627a-display.c
+@@ -1487,7 +1487,7 @@ void __init msm_fb_add_devices(void)
+ 		platform_add_devices(qrd3_fb_devices,
+ 						ARRAY_SIZE(qrd3_fb_devices));
+ 	} else if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd()) {
+-		mdp_pdata.cont_splash_enabled = 0x1;
++		mdp_pdata.cont_splash_enabled = 0x0;
+ 		platform_add_devices(skud_fb_devices,
+ 				ARRAY_SIZE(skud_fb_devices));
+ 	} else {
+diff --git a/drivers/video/msm/mipi_hx8389b_video_qhd_pt.c b/drivers/video/msm/mipi_hx8389b_video_qhd_pt.c
+index a483d8e..c8c3f75 100644
+--- a/drivers/video/msm/mipi_hx8389b_video_qhd_pt.c
++++ b/drivers/video/msm/mipi_hx8389b_video_qhd_pt.c
+@@ -92,7 +92,7 @@ static int mipi_video_hx8389b_qhd_pt_init(void)
+ 	pinfo.mipi.frame_rate = 55; /* FIX ME */
+ 
+ 	pinfo.mipi.dsi_phy_db = &dsi_video_mode_phy_db;
+-	pinfo.mipi.dlane_swap = 0x01;
++	pinfo.mipi.dlane_swap = 0x00;
+ 	/* append EOT at the end of data burst */
+ 	pinfo.mipi.tx_eot_append = 0x01;
+ 
+-- 
+1.7.0.4
+

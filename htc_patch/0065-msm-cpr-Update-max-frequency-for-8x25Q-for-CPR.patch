@@ -1,0 +1,51 @@
+From 26e6f0d57485cb2f8ba94494364bfd9b7bf4f7c8 Mon Sep 17 00:00:00 2001
+From: Kaushal Kumar <kaushalk@codeaurora.org>
+Date: Fri, 30 Nov 2012 20:40:11 +0530
+Subject: [PATCH 65/75] msm: cpr: Update max frequency for 8x25Q for CPR.
+
+The maximum frequency of 8625Q is 1.2GHz. This is updated
+in the CPR platform data since the Quot calculations are
+based on this value.
+
+Signed-off-by: Kaushal Kumar <kaushalk@codeaurora.org>
+(cherry picked from commit 5f445a481deb36ac21c28cf597bdd4c3448869bd)
+
+Change-Id: I52477d0817683add866b1827feb4c8f3bfe45175
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+(cherry picked from commit df9088da01c6d205d6c9090d0e346539161f108a)
+
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x27a.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x27a.c b/arch/arm/mach-msm/devices-msm7x27a.c
+index db2b8d4..2bf925d 100644
+--- a/arch/arm/mach-msm/devices-msm7x27a.c
++++ b/arch/arm/mach-msm/devices-msm7x27a.c
+@@ -1889,11 +1889,11 @@ static void __init msm_cpr_init(void)
+ 	 * a 1.2GHz part by a chip characterization recommended value.
+ 	 * Ditto for a 1.0GHz part.
+ 	 */
+-	if (msm8625_cpu_id() == MSM8625A) {
++	if ((msm8625_cpu_id() == MSM8625A) && !cpu_is_msm8625q()) {
+ 		msm_cpr_pdata.max_quot += 30;
+ 		if (msm_cpr_pdata.max_quot > 1400)
+ 			msm_cpr_pdata.max_quot = 1400;
+-	} else if (msm8625_cpu_id() == MSM8625) {
++	} else if ((msm8625_cpu_id() == MSM8625) && !cpu_is_msm8625q()) {
+ 		msm_cpr_pdata.max_quot += 50;
+ 		if (msm_cpr_pdata.max_quot > 1350)
+ 			msm_cpr_pdata.max_quot = 1350;
+@@ -1934,7 +1934,7 @@ static void __init msm_cpr_init(void)
+ 
+ 	kfree(cpr_info);
+ 
+-	if (msm8625_cpu_id() == MSM8625A)
++	if ((msm8625_cpu_id() == MSM8625A) || cpu_is_msm8625q())
+ 		msm_cpr_pdata.max_freq = 1209600;
+ 	else if (msm8625_cpu_id() == MSM8625)
+ 		msm_cpr_pdata.max_freq = 1008000;
+-- 
+1.7.0.4
+

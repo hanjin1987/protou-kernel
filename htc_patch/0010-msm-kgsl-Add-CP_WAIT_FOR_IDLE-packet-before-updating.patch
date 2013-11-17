@@ -1,0 +1,56 @@
+From 03c88f958a62e4bcea0640faef0766d6d10e787a Mon Sep 17 00:00:00 2001
+From: Anshuman Dani <adani@codeaurora.org>
+Date: Tue, 6 Nov 2012 22:19:50 +0530
+Subject: [PATCH 10/75] msm: kgsl: Add CP_WAIT_FOR_IDLE packet before updating timestamp
+
+HW workaround to resolve MMU pagefault caused by memory
+freeing early before GPU completes it.
+
+This is race condition where timestamp is getting updated
+and the event handler runs before the GPU actually got done
+with the timestamp, hence freeing the buffer early while GPU
+still not completed with it.
+
+Signed-off-by: Anshuman Dani <adani@codeaurora.org>
+(cherry picked from commit faf69cfeeede0883b9556e532d720ab4dc95b01d)
+
+Change-Id: I7db96e3cd1c4497986faa3cfc222be0af6213309
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/gpu/msm/adreno_ringbuffer.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/msm/adreno_ringbuffer.c b/drivers/gpu/msm/adreno_ringbuffer.c
+index b3f3eec..1773c50 100644
+--- a/drivers/gpu/msm/adreno_ringbuffer.c
++++ b/drivers/gpu/msm/adreno_ringbuffer.c
+@@ -499,6 +499,9 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
+ 	if (adreno_is_a3xx(adreno_dev))
+ 		total_sizedwords += 7;
+ 
++	if (adreno_is_a2xx(adreno_dev))
++		total_sizedwords += 2; /* CP_WAIT_FOR_IDLE */
++
+ 	total_sizedwords += 2; /* scratchpad ts for recovery */
+ 	if (context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
+ 		total_sizedwords += 3; /* sop timestamp */
+@@ -555,6 +558,16 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
+ 	}
+ 	timestamp = rb->timestamp[context_id];
+ 
++	/* HW Workaround for MMU Page fault
++	* due to memory getting free early before
++	* GPU completes it.
++	*/
++	if (adreno_is_a2xx(adreno_dev)) {
++		GSL_RB_WRITE(ringcmds, rcmd_gpu,
++			cp_type3_packet(CP_WAIT_FOR_IDLE, 1));
++		GSL_RB_WRITE(ringcmds, rcmd_gpu, 0x00);
++	}
++
+ 	/* scratchpad ts for recovery */
+ 	GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_type0_packet(REG_CP_TIMESTAMP, 1));
+ 	GSL_RB_WRITE(ringcmds, rcmd_gpu, rb->timestamp[KGSL_MEMSTORE_GLOBAL]);
+-- 
+1.7.0.4
+

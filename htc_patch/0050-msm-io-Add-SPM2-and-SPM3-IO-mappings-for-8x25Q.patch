@@ -1,0 +1,50 @@
+From 252e31dd17c64c5dc29ecdeb0e5a2ac91c8b3b5d Mon Sep 17 00:00:00 2001
+From: Murali Nalajala <mnalajal@codeaurora.org>
+Date: Wed, 31 Oct 2012 14:15:52 +0530
+Subject: [PATCH 50/75] msm: io: Add SPM2 and SPM3 IO mappings for 8x25Q
+
+Map SPM2 & SPM3 IO addresses for 8x25Q target.
+
+Signed-off-by: Murali Nalajala <mnalajal@codeaurora.org>
+(cherry picked from commit 1d1df9cd612205882e0663636ac11714862faf1e)
+
+Change-Id: I591c3451ea0784edf9e36843807fcd41ebb3c31c
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ arch/arm/mach-msm/include/mach/msm_iomap-8625.h |    6 ++++++
+ arch/arm/mach-msm/io.c                          |    2 ++
+ 2 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-msm/include/mach/msm_iomap-8625.h b/arch/arm/mach-msm/include/mach/msm_iomap-8625.h
+index 43250f5..9b6de20 100644
+--- a/arch/arm/mach-msm/include/mach/msm_iomap-8625.h
++++ b/arch/arm/mach-msm/include/mach/msm_iomap-8625.h
+@@ -54,6 +54,12 @@
+ #define MSM8625_SAW1_PHYS		0xC0700000
+ #define MSM8625_SAW1_SIZE		SZ_4K
+ 
++#define MSM8625_SAW2_PHYS		0xC0A00000
++#define MSM8625_SAW2_SIZE		SZ_4K
++
++#define MSM8625_SAW3_PHYS		0xC0B00000
++#define MSM8625_SAW3_SIZE		SZ_4K
++
+ #define MSM8625_CFG_CTL_PHYS		0xA9800000
+ #define MSM8625_CFG_CTL_SIZE		SZ_4K
+ 
+diff --git a/arch/arm/mach-msm/io.c b/arch/arm/mach-msm/io.c
+index ede29ef..628f324 100644
+--- a/arch/arm/mach-msm/io.c
++++ b/arch/arm/mach-msm/io.c
+@@ -427,6 +427,8 @@ static struct map_desc msm8625_io_desc[] __initdata = {
+ 	MSM_CHIP_DEVICE(CLK_CTL, MSM8625),
+ 	MSM_CHIP_DEVICE(SAW0, MSM8625),
+ 	MSM_CHIP_DEVICE(SAW1, MSM8625),
++	MSM_CHIP_DEVICE(SAW2, MSM8625),
++	MSM_CHIP_DEVICE(SAW3, MSM8625),
+ 	MSM_CHIP_DEVICE(AD5, MSM7XXX),
+ 	MSM_CHIP_DEVICE(MDC, MSM7XXX),
+ #if defined(CONFIG_DEBUG_MSM_UART1) || defined(CONFIG_DEBUG_MSM_UART2) || \
+-- 
+1.7.0.4
+

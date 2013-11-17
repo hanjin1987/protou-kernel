@@ -1,0 +1,60 @@
+From 01bc9ae7996b34c7feeb1f8cb7da609f5ff786a4 Mon Sep 17 00:00:00 2001
+From: Tirupathi Reddy <tirupath@codeaurora.org>
+Date: Thu, 27 Sep 2012 13:48:29 +0530
+Subject: [PATCH 27/75] msm: platsmp-8625: refactor code for core_reset_base
+
+The function returns reset_core_base pointer of core1, right now.
+The code should be refactored in order to support other cores.
+
+Change-Id: Iac08be058aaf251c8906bb10a82d539162380f51
+Signed-off-by: Tirupathi Reddy <tirupath@codeaurora.org>
+---
+ arch/arm/mach-msm/devices-msm7x2xa.h |    2 +-
+ arch/arm/mach-msm/platsmp-8625.c     |    4 ++--
+ arch/arm/mach-msm/pm2.c              |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-msm/devices-msm7x2xa.h b/arch/arm/mach-msm/devices-msm7x2xa.h
+index 8b59b14..614037c 100644
+--- a/arch/arm/mach-msm/devices-msm7x2xa.h
++++ b/arch/arm/mach-msm/devices-msm7x2xa.h
+@@ -33,6 +33,6 @@ int  ar600x_wlan_power(bool on);
+ void __init msm8x25_spm_device_init(void);
+ void __init msm_pm_register_cpr_ops(void);
+ void __init msm8x25_kgsl_3d0_init(void);
+-void __iomem *core1_reset_base(void);
++void __iomem *core_reset_base(unsigned int);
+ extern void setup_mm_for_reboot(void);
+ #endif
+diff --git a/arch/arm/mach-msm/platsmp-8625.c b/arch/arm/mach-msm/platsmp-8625.c
+index 81d21e7..3b31b9f 100644
+--- a/arch/arm/mach-msm/platsmp-8625.c
++++ b/arch/arm/mach-msm/platsmp-8625.c
+@@ -173,9 +173,9 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-void __iomem *core1_reset_base(void)
++void __iomem *core_reset_base(unsigned int cpu)
+ {
+-	return cpu_data[1].reset_core_base;
++	return cpu_data[cpu].reset_core_base;
+ }
+ 
+ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+diff --git a/arch/arm/mach-msm/pm2.c b/arch/arm/mach-msm/pm2.c
+index cd7cfa6..b37a6ba 100644
+--- a/arch/arm/mach-msm/pm2.c
++++ b/arch/arm/mach-msm/pm2.c
+@@ -487,7 +487,7 @@ static void configure_top_csr(void)
+ 	void __iomem *base_ptr;
+ 	unsigned int value = 0;
+ 
+-	base_ptr = core1_reset_base();
++	base_ptr = core_reset_base(1);
+ 	if (!base_ptr)
+ 		return;
+ 
+-- 
+1.7.0.4
+

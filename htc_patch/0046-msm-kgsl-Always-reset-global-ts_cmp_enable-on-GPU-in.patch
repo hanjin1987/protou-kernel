@@ -1,0 +1,65 @@
+From 244b7ba49214d720d09247e67eaaaac0abe63207 Mon Sep 17 00:00:00 2001
+From: Carter Cooper <ccooper@codeaurora.org>
+Date: Mon, 5 Nov 2012 11:53:54 -0700
+Subject: [PATCH 46/75] msm: kgsl: Always reset global ts_cmp_enable on GPU interrupts
+
+Always rest the ts_cmp_enable when an interrupt is received
+from the GPU.  This keeps legacy code that is not using
+per context timestamps correctly updated.  No effect is
+seen with mainline code using per context timestamps.
+
+CRs-fixed: 418172
+Signed-off-by: Carter Cooper <ccooper@codeaurora.org>
+(cherry picked from commit 95b0011ae56577e84d2912ae7d600ae62c08c2e4)
+
+Change-Id: Id11bd4c7adfd5a396e01f508c383a62adab3d544
+Signed-off-by: Gopal Goberu <ggober@codeaurora.org>
+---
+ drivers/gpu/msm/adreno_a2xx.c |    8 +++++++-
+ drivers/gpu/msm/adreno_a3xx.c |    6 ++++++
+ 2 files changed, 13 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/msm/adreno_a2xx.c b/drivers/gpu/msm/adreno_a2xx.c
+index 5ba3778..f6d87cb 100644
+--- a/drivers/gpu/msm/adreno_a2xx.c
++++ b/drivers/gpu/msm/adreno_a2xx.c
+@@ -1716,9 +1716,15 @@ static void a2xx_cp_intrcallback(struct kgsl_device *device)
+ 				KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
+ 					current_context));
+ 		if (context_id < KGSL_MEMSTORE_MAX) {
+-			kgsl_sharedmem_writel(&rb->device->memstore,
++			/* reset per context ts_cmp_enable */
++			kgsl_sharedmem_writel(&device->memstore,
+ 					KGSL_MEMSTORE_OFFSET(context_id,
+ 						ts_cmp_enable), 0);
++			/* Always reset global timestamp ts_cmp_enable */
++			kgsl_sharedmem_writel(&device->memstore,
++					KGSL_MEMSTORE_OFFSET(
++						KGSL_MEMSTORE_GLOBAL,
++						ts_cmp_enable), 0);
+ 			wmb();
+ 		}
+ 		KGSL_CMD_WARN(rb->device, "ringbuffer rb interrupt\n");
+diff --git a/drivers/gpu/msm/adreno_a3xx.c b/drivers/gpu/msm/adreno_a3xx.c
+index 2714692..1fc6bb2 100644
+--- a/drivers/gpu/msm/adreno_a3xx.c
++++ b/drivers/gpu/msm/adreno_a3xx.c
+@@ -2562,9 +2562,15 @@ static void a3xx_cp_callback(struct adreno_device *adreno_dev, int irq)
+ 				KGSL_MEMSTORE_OFFSET(KGSL_MEMSTORE_GLOBAL,
+ 					current_context));
+ 		if (context_id < KGSL_MEMSTORE_MAX) {
++			/* reset per context ts_cmp_enable */
+ 			kgsl_sharedmem_writel(&device->memstore,
+ 					KGSL_MEMSTORE_OFFSET(context_id,
+ 						ts_cmp_enable), 0);
++			/* Always reset global timestamp ts_cmp_enable */
++			kgsl_sharedmem_writel(&device->memstore,
++					KGSL_MEMSTORE_OFFSET(
++						KGSL_MEMSTORE_GLOBAL,
++						ts_cmp_enable), 0);
+ 			wmb();
+ 		}
+ 		KGSL_CMD_WARN(device, "ringbuffer rb interrupt\n");
+-- 
+1.7.0.4
+
